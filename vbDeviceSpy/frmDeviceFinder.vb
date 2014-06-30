@@ -13,13 +13,15 @@ Public Class frmDeviceFinder
     Private RootNodes As New Dictionary(Of String, TreeNode)
 
 #Region "GUI Management"
+
+    '// manage Toolstrip resizing and "spring" functionality
     Private Sub GuiResizing()
         Me.cmbSearch.AutoSize = False
         Me.cmbSearch.Width = Me.ToolStrip1.ClientSize.Width - GetToolItemLeft(cmbSearch) - Me.ToolStrip1.OverflowButton.Width - Me.ToolStrip1.Padding.Left - Me.ToolStrip1.Margin.Left
     End Sub
 
     '// calculate available space for toolstrip item "spring"
-    Private Function GetToolItemLeft(ByVal item As ToolStripItem)
+    Private Function GetToolItemLeft(ByVal item As ToolStripItem) As Integer
         Dim left As Integer
         For Each search As ToolStripItem In Me.ToolStrip1.Items
             If search IsNot item Then
@@ -68,8 +70,15 @@ Public Class frmDeviceFinder
         For Each service As UPnPService In SubscribedList
             service.UnSubscribe(Nothing)
         Next
-        Me.scp = New UPnPSmartControlPoint(New UPnPSmartControlPoint.DeviceHandler(AddressOf Me.HandleAddedDevice))
-        AddHandler scp.OnRemovedDevice, AddressOf Me.HandleRemovedDevice
+        For Each device As UPnPDevice In scp.Devices
+            Try
+                scp.ForceDisposeDevice(device)
+            Catch ex As Exception
+                Debug.Print("Couldn't kill :" & device.FriendlyName)
+            End Try
+        Next
+        scp.Devices.Clear()
+        scp = Nothing
     End Sub
 
 #End Region
@@ -242,6 +251,32 @@ Public Class frmDeviceFinder
             Clipboard.SetText(Me.eventListView.SelectedItems(0).SubItems(3).Text)
         End If
     End Sub
+
+    Private Sub expandAllMenuItem2_Click(sender As Object, e As EventArgs) Handles expandAllMenuItem2.Click
+        If Me.deviceTree.SelectedNode IsNot Nothing Then
+            Me.deviceTree.SelectedNode.Expand()
+            Dim node As TreeNode = Me.deviceTree.SelectedNode
+            For Each child As TreeNode In node.Nodes
+                If child.Nodes.Count > 0 Then
+                    'child.Expand()
+                End If
+            Next
+        End If
+
+
+    End Sub
+
+    Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
+        If Me.deviceTree.SelectedNode IsNot Nothing Then
+            Me.deviceTree.SelectedNode.Collapse()
+            Dim node As TreeNode = Me.deviceTree.SelectedNode
+            For Each child As TreeNode In node.Nodes
+                If child.Nodes.Count > 0 Then
+                    'child.Expand()
+                End If
+            Next
+        End If
+    End Sub
 #End Region
 
 #Region "Tree and ListInfo Routines"
@@ -338,29 +373,5 @@ Public Class frmDeviceFinder
  
 #End Region
  
-    Private Sub expandAllMenuItem2_Click(sender As Object, e As EventArgs) Handles expandAllMenuItem2.Click
-        If Me.deviceTree.SelectedNode IsNot Nothing Then
-            Me.deviceTree.SelectedNode.Expand()
-            Dim node As TreeNode = Me.deviceTree.SelectedNode
-            For Each child As TreeNode In node.Nodes
-                If child.Nodes.Count > 0 Then
-                    'child.Expand()
-                End If
-            Next
-        End If
 
-        
-    End Sub
-
-    Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
-        If Me.deviceTree.SelectedNode IsNot Nothing Then
-            Me.deviceTree.SelectedNode.Collapse()
-            Dim node As TreeNode = Me.deviceTree.SelectedNode
-            For Each child As TreeNode In node.Nodes
-                If child.Nodes.Count > 0 Then
-                    'child.Expand()
-                End If
-            Next
-        End If
-    End Sub
 End Class

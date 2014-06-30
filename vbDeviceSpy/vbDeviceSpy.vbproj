@@ -54,7 +54,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="UPnP">
-      <HintPath>..\..\DeviceSpy\lib\UPnP.dll</HintPath>
+      <HintPath>lib\UPnP.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +70,7 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="discovery.vb" />
     <Compile Include="Form1.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -81,6 +82,12 @@
       <DependentUpon>formForceAdd.vb</DependentUpon>
     </Compile>
     <Compile Include="formForceAdd.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmDeviceFinderClean.Designer.vb">
+      <DependentUpon>frmDeviceFinderClean.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmDeviceFinderClean.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmDeviceFinder.Designer.vb">
@@ -109,6 +116,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmDeviceFinderClean.resx">
+      <DependentUpon>frmDeviceFinderClean.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmDeviceFinder.resx">
       <DependentUpon>frmDeviceFinder.vb</DependentUpon>
