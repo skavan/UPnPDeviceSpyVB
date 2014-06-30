@@ -10,6 +10,7 @@ Module modUtils
         End If
         Dim Parent As TreeNode = New TreeNode(device.FriendlyName, 1, 1)
         Parent.Tag = device
+
         For cid As Integer = 0 To device.Services.Length - 1
             Dim Child As TreeNode = New TreeNode(device.Services(cid).ServiceURN, 2, 2)
             Child.Tag = device.Services(cid)
