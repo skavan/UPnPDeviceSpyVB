@@ -1,6 +1,7 @@
 ﻿Imports OpenSource.UPnP
 
 Module modUtils
+
     Function CreateTreeNode(device As UPnPDevice) As TreeNode
         Dim TempList As SortedList = New SortedList()
         '// force escalation to parent device
@@ -9,6 +10,7 @@ Module modUtils
         End If
         Dim Parent As TreeNode = New TreeNode(device.FriendlyName, 1, 1)
         Parent.Tag = device
+
         For cid As Integer = 0 To device.Services.Length - 1
             Dim Child As TreeNode = New TreeNode(device.Services(cid).ServiceURN, 2, 2)
             Child.Tag = device.Services(cid)
@@ -304,6 +306,19 @@ Module modUtils
             Return False
         End If
     End Function
+
+    Public Function GetCategoryNode(RootNodes As Dictionary(Of String, TreeNode), Categories As Dictionary(Of String, String), device As UPnPDevice) As TreeNode
+
+        If Categories.ContainsKey(device.DeviceURN) Then
+            Return RootNodes(device.DeviceURN)
+        Else
+            For Each childDevice As UPnPDevice In device.EmbeddedDevices
+                Return GetCategoryNode(RootNodes, Categories, childDevice)
+            Next
+        End If
+        Return RootNodes("OTHER")
+    End Function
+
 
     ''// given a device and a ServiceID, go find another device with the same ipaddress that has the target ServiceID in its tree.
     'Public Function FindSiblingDevice(device As UPnPDevice, targetServiceID As String) As UPnPDevice

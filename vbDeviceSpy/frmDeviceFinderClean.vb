@@ -1,13 +1,13 @@
 ﻿Imports OpenSource.UPnP
 
-Public Class frmDeviceFinder
+Public Class frmDeviceFinderClean
 
     Public Delegate Sub UpdateTreeDelegate(device As UPnPDevice, node As TreeNode)
-    Private SubscribeTime As Integer = 300
-    Protected scp As UPnPSmartControlPoint
-    Private df As UPnPDeviceFactory
+    Public Delegate Sub DeviceChangeHandler(device As UPnPDevice)
+    Public Delegate Sub ServiceDataChangedHandler(service As UPnPService, sender As UPnPStateVariable, data As Object)
+    Public WithEvents disc As New discovery
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
-    Private ForceDeviceList As Hashtable = New Hashtable()
+
     Private SubscribedList As New ArrayList
     Private Categories As New Dictionary(Of String, String)
     Private RootNodes As New Dictionary(Of String, TreeNode)
@@ -36,13 +36,10 @@ Public Class frmDeviceFinder
 #Region "Initialization & Cleanup"
 
     Private Sub Init()
-        Me.SubscribeTime = 300
-        '        Me.UPnpRoot = New TreeNode("Media Devices", 0, 0)
 
         Categories.Add("urn:schemas-upnp-org:device:MediaRenderer:1", "Media Renderers")
         Categories.Add("urn:schemas-upnp-org:device:MediaServer:1", "Media Servers")
         Categories.Add("OTHER", "Other")
-
 
         For Each item In Categories
             Dim root As New TreeNode(item.Value, 0, 0)
@@ -50,98 +47,44 @@ Public Class frmDeviceFinder
             RootNodes.Add(item.Key, root)
             Me.deviceTree.Nodes.Add(root)
         Next
-
-
-        'Me.ForceDeviceList = New Hashtable()
-
-
-        '// test 
-        'Dim NetworkUri = New Uri("http://192.168.1.199:1400/xml/device_description.xml")
-        'df = New UPnPDeviceFactory(NetworkUri, 1800, New UPnPDeviceFactory.UPnPDeviceHandler(AddressOf HandleForceAddDevice), New UPnPDeviceFactory.UPnPDeviceFailedHandler(AddressOf HandleForceAddFailed), System.Net.IPAddress.Parse("192.168.1.103"), "RINCON_000E58A72F9601400")
-
-        'Me.scp = New UPnPSmartControlPoint(New UPnPSmartControlPoint.DeviceHandler(AddressOf Me.HandleAddedDevice), Nothing, {"urn:schemas-upnp-org:service:AVTransport:1", "urn:schemas-upnp-org:service:ConnectionManager:1", "urn:schemas-upnp-org:service:RenderingControl:1"})
-        Me.scp = New UPnPSmartControlPoint(New UPnPSmartControlPoint.DeviceHandler(AddressOf Me.HandleAddedDevice))
-        AddHandler Me.scp.OnRemovedDevice, New UPnPSmartControlPoint.DeviceHandler(AddressOf Me.HandleRemovedDevice)
+        disc.Init()
         GuiResizing()
     End Sub
 
     Private Sub CleanUp()
-        '// unsubscribe to all subscribed services!
-        For Each service As UPnPService In SubscribedList
-            service.UnSubscribe(Nothing)
-        Next
-        For Each device As UPnPDevice In scp.Devices
-            Try
-                scp.ForceDisposeDevice(device)
-            Catch ex As Exception
-                Debug.Print("Couldn't kill :" & device.FriendlyName)
-            End Try
-        Next
-        scp.Devices.Clear()
-        scp = Nothing
+        disc.CleanUp()
+        disc = Nothing
     End Sub
 
 #End Region
 
 #Region "Callbacks"
-    Protected Sub HandleAddedDevice(sender As UPnPSmartControlPoint, device As UPnPDevice)
-        Me.AddDeviceToTree(device, device.BaseURL)
+
+    Private Sub disc_deviceDiscoveryEvent(device As UPnPDevice, deviceChangeEvent As discovery.eDeviceDiscoveryEvent) Handles disc.deviceDiscoveryEvent
+        Select Case deviceChangeEvent
+            Case discovery.eDeviceDiscoveryEvent.deviceAdded
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), device)
+                'Me.AddDeviceToTree(device)
+            Case discovery.eDeviceDiscoveryEvent.deviceRemoved
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {device})
+        End Select
+
     End Sub
 
-    Protected Sub HandleRemovedDevice(sender As UPnPSmartControlPoint, device As UPnPDevice)
-        MyBase.Invoke(New UPnPSmartControlPoint.DeviceHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {sender, device})
+    Private Sub disc_serviceDataEvent(service As UPnPService, sender As UPnPStateVariable, EventValue As Object) Handles disc.serviceDataEvent
+        MyBase.Invoke(New ServiceDataChangedHandler(AddressOf Me.HandleEvents), {service, sender, EventValue})
+        Debug.Print("Service Data:" & service.ServiceURN & "-" & EventValue.ToString)
     End Sub
 
-    Protected Sub HandleSubscribe(sender As UPnPService, succes As Boolean)
-        If MyBase.InvokeRequired Then
-            MyBase.Invoke(New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleSubscribe), New Object() {sender, succes})
-        Else
-            If Not succes Then
-                Me.lblStatus.Text = "FAILED Subscription - " + sender.ParentDevice.FriendlyName + ", " + sender.ServiceID
-            Else
-                Me.lblStatus.Text = "Subscribed to " + sender.ParentDevice.FriendlyName + ", " + sender.ServiceID
-                If Not SubscribedList.Contains(sender) Then
-                    SubscribedList.Add(sender)
-                End If
-
-            End If
-        End If
+    Private Sub disc_serviceSubscriptionEvent(device As UPnPDevice, service As UPnPService, serviceChangeEvent As discovery.eServiceSubscriptionEvent) Handles disc.serviceSubscriptionEvent
+        Debug.Print("service subscribed:" & service.ServiceURN)
     End Sub
 
-    Protected Sub HandleEvents(sender As UPnPStateVariable, EventValue As Object)
-        If MyBase.InvokeRequired Then
-            MyBase.Invoke(New UPnPStateVariable.ModifiedHandler(AddressOf Me.HandleEvents), New Object() {sender, EventValue})
-        Else
-            Dim eventSource As String = sender.OwningService.ParentDevice.FriendlyName + "/" + sender.OwningService.ServiceID
-            Dim eventValue1 As String = UPnPService.SerializeObjectInstance(EventValue)
-            If eventValue1 = "" Then
-                eventValue1 = "(Empty)"
-            End If
-            Debug.Print(eventSource & "|" & EventValue)
-            Dim now As DateTime = DateTime.Now
-            Dim i As ListViewItem = New ListViewItem(New String() {now.ToShortTimeString(), eventSource, sender.Name, EventValue})
-            i.Tag = now
-            Me.eventListView.Items.Insert(0, i)
-            If Me.deviceTree.SelectedNode IsNot Nothing Then
-                If Me.deviceTree.SelectedNode.Tag.[GetType]() Is GetType(UPnPStateVariable) Then
-                    If (CType(Me.deviceTree.SelectedNode.Tag, UPnPStateVariable)).SendEvent Then
-                        If Me.deviceTree.SelectedNode.Tag.GetHashCode() = sender.GetHashCode() Then
-                            SetListInfo(Me.deviceTree.SelectedNode.Tag)
-                        End If
-                    End If
-                End If
-            End If
-            Dim fNode As TreeNode = Me.deviceTree.Nodes(0).FirstNode
-            While fNode IsNot Nothing
-                Me.ScanDeviceNode(fNode, sender.OwningService)
-                fNode = fNode.NextNode
-            End While
-        End If
-    End Sub
 #End Region
 
 #Region "Form and GUI Events"
 
+    '// Popup Menu and Associated menu Items
     Private Sub deviceTree_MouseDown(sender As Object, e As MouseEventArgs) Handles deviceTree.MouseDown
         Me.eventSubscribeMenuItem.Visible = False
         Me.invokeActionMenuItem.Visible = False
@@ -184,6 +127,7 @@ Public Class frmDeviceFinder
         End If
     End Sub
 
+    '// Get detailed data on an item
     Private Sub OnSelectedItem(sender As Object, e As TreeViewEventArgs) Handles deviceTree.AfterSelect
         Dim node As TreeNode = Me.deviceTree.SelectedNode
         Dim Items As ArrayList = SetListInfo(node.Tag)
@@ -192,19 +136,23 @@ Public Class frmDeviceFinder
         Me.listInfo.Items.AddRange(CType(Items.ToArray(GetType(ListViewItem)), ListViewItem()))
     End Sub
 
+    '// on load
     Private Sub frmDeviceFinder_Load(sender As Object, e As EventArgs) Handles Me.Load
         Init()
     End Sub
 
+    '// on exit
     Private Sub Form1_HandleDestroyed(sender As Object, e As EventArgs) Handles Me.HandleDestroyed
         'Me.deviceTree.Nodes.Add(Me.UPnpRoot)
-        Cleanup()
+        CleanUp()
     End Sub
 
+    '// on GUI resize
     Private Sub ToolStrip1_SizeChanged(sender As Object, e As EventArgs) Handles ToolStrip1.SizeChanged
         GuiResizing()
     End Sub
 
+    '// menu item -- Subscribe/Unsubscribe to Events
     Private Sub eventSubscribeMenuItem_Click(sender As Object, e As EventArgs) Handles eventSubscribeMenuItem.Click
         If Me.deviceTree.SelectedNode IsNot Nothing Then
             If Me.deviceTree.SelectedNode.Tag IsNot Nothing Then
@@ -218,47 +166,36 @@ Public Class frmDeviceFinder
                         Me.deviceTree.SelectedNode.ImageIndex = 3
                         Me.deviceTree.SelectedNode.SelectedImageIndex = 3
                         Me.deviceTree.SelectedNode.Checked = True
-                        AddHandler service.OnSubscribe, New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleSubscribe)
 
-                        Dim stateVariables As UPnPStateVariable() = (CType(service, UPnPService)).GetStateVariables()
-                        For i As Integer = 0 To stateVariables.Length - 1
-                            Dim V As UPnPStateVariable = stateVariables(i)
-                            AddHandler V.OnModified, New UPnPStateVariable.ModifiedHandler(AddressOf Me.HandleEvents)
-                        Next
-                        service.Subscribe(Me.SubscribeTime, Nothing)
+                        disc.Subscribe(service)
                     Else
                         Me.deviceTree.SelectedNode.ImageIndex = 2
                         Me.deviceTree.SelectedNode.SelectedImageIndex = 2
                         Me.deviceTree.SelectedNode.Checked = False
-                        AddHandler service.OnSubscribe, New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleSubscribe)
 
-                        Dim stateVariables As UPnPStateVariable() = (CType(service, UPnPService)).GetStateVariables()
-                        For i As Integer = 0 To stateVariables.Length - 1
-                            Dim V As UPnPStateVariable = stateVariables(i)
-                            If V.SendEvent Then
-                                AddHandler V.OnModified, New UPnPStateVariable.ModifiedHandler(AddressOf Me.HandleEvents)
-                            End If
-                        Next
-                        service.UnSubscribe(Nothing)
+                        disc.UnSubscribe(service)
                     End If
                 End If
             End If
         End If
     End Sub
 
+    '// copy data value to clipboard
     Private Sub copyEventCpMenuItem_Click(sender As Object, e As EventArgs) Handles copyEventCpMenuItem.Click
         If Me.eventListView.SelectedItems.Count <> 0 Then
             Clipboard.SetText(Me.eventListView.SelectedItems(0).SubItems(3).Text)
         End If
     End Sub
 
+    '// expand tree
     Private Sub expandAllMenuItem2_Click(sender As Object, e As EventArgs) Handles expandAllMenuItem2.Click
         If Me.deviceTree.SelectedNode IsNot Nothing Then
             Me.deviceTree.SelectedNode.Expand()
             Dim node As TreeNode = Me.deviceTree.SelectedNode
             For Each child As TreeNode In node.Nodes
-                If child.Nodes.Count > 0 Then
-                    'child.Expand()
+                If child.ImageIndex = 1 Then
+                    '// this means its a device
+                    child.Expand()
                 End If
             Next
         End If
@@ -266,6 +203,7 @@ Public Class frmDeviceFinder
 
     End Sub
 
+    '//collapse tree
     Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
         If Me.deviceTree.SelectedNode IsNot Nothing Then
             Me.deviceTree.SelectedNode.Collapse()
@@ -281,27 +219,15 @@ Public Class frmDeviceFinder
 
 #Region "Tree and ListInfo Routines"
 
-    Protected Sub AddDeviceToTree(device As UPnPDevice, URL As Uri)
+    Protected Sub AddDeviceToTree(device As UPnPDevice)
         Dim parent As TreeNode = CreateTreeNode(device)
         Dim args As Object() = New Object() {device, parent}
-        MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
+        UpdateTree(device, parent)
+        'MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
     End Sub
 
-    Function GetRootNode(device As UPnPDevice) As TreeNode
-
-        If Categories.ContainsKey(device.DeviceURN) Then
-            Return RootNodes(device.DeviceURN)
-        Else
-            For Each childDevice As UPnPDevice In device.EmbeddedDevices
-                Return GetRootNode(childDevice)
-            Next
-        End If
-        Return RootNodes("OTHER")
-
-    End Function
-
-    Protected Sub RemovedDeviceFromTree(sender As UPnPSmartControlPoint, device As UPnPDevice)
-        Dim root As TreeNode = GetRootNode(device)
+    Protected Sub RemovedDeviceFromTree(device As UPnPDevice)
+        Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
         Dim TempList As ArrayList = New ArrayList()
         Dim en As IEnumerator = root.Nodes.GetEnumerator()
         While en.MoveNext()
@@ -318,7 +244,7 @@ Public Class frmDeviceFinder
     End Sub
 
     Protected Sub UpdateTree(device As UPnPDevice, node As TreeNode)
-        Dim root As TreeNode = GetRootNode(device)
+        Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
         If root.Nodes.Count = 0 Then
             root.Nodes.Add(node)
         Else
@@ -370,8 +296,40 @@ Public Class frmDeviceFinder
             pNode = pNode.NextNode
         End While
     End Sub
- 
-#End Region
- 
 
+    Private Sub HandleEvents(service As UPnPService, sender As UPnPStateVariable, EventValue As Object)
+
+        Dim eventSource As String = service.ParentDevice.FriendlyName + "/" + service.ServiceID
+        Dim eventValue1 As String = UPnPService.SerializeObjectInstance(EventValue)
+        If eventValue1 = "" Then
+            eventValue1 = "(Empty)"
+        End If
+
+        'Debug.Print(eventSource & "|" & EventValue)
+        Dim now As DateTime = DateTime.Now
+        Dim i As ListViewItem = New ListViewItem(New String() {now.ToShortTimeString(), eventSource, sender.Name, EventValue})
+        i.Tag = now
+        Me.eventListView.Items.Insert(0, i)
+        If Me.deviceTree.SelectedNode IsNot Nothing Then
+            If Me.deviceTree.SelectedNode.Tag.[GetType]() Is GetType(UPnPStateVariable) Then
+                If (CType(Me.deviceTree.SelectedNode.Tag, UPnPStateVariable)).SendEvent Then
+                    If Me.deviceTree.SelectedNode.Tag.GetHashCode() = sender.GetHashCode() Then
+                        SetListInfo(Me.deviceTree.SelectedNode.Tag)
+                    End If
+                End If
+            End If
+        End If
+        Dim fNode As TreeNode = Me.deviceTree.Nodes(0).FirstNode
+        While fNode IsNot Nothing
+            Me.ScanDeviceNode(fNode, sender.OwningService)
+            fNode = fNode.NextNode
+        End While
+
+    End Sub
+
+#End Region
+
+
+    
+    
 End Class

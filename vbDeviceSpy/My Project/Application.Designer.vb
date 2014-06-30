@@ -32,7 +32,7 @@ Namespace My
         
         <Global.System.Diagnostics.DebuggerStepThroughAttribute()>  _
         Protected Overrides Sub OnCreateMainForm()
-            Me.MainForm = Global.vbDeviceSpy.frmDeviceFinder
+            Me.MainForm = Global.vbDeviceSpy.frmDeviceFinderClean
         End Sub
     End Class
 End Namespace
