@@ -72,6 +72,7 @@ Partial Class frmDeviceFinder
         Me.menuItem11 = New System.Windows.Forms.MenuItem()
         Me.ClearEventLogMenuItem = New System.Windows.Forms.MenuItem()
         Me.StatusStrip1 = New System.Windows.Forms.StatusStrip()
+        Me.lblStatus = New System.Windows.Forms.ToolStripStatusLabel()
         Me.tabControl1 = New System.Windows.Forms.TabControl()
         Me.tabAvailable = New System.Windows.Forms.TabPage()
         Me.splitter1 = New System.Windows.Forms.SplitContainer()
@@ -81,6 +82,9 @@ Partial Class frmDeviceFinder
         Me.btnScan = New System.Windows.Forms.ToolStripButton()
         Me.splitter2 = New System.Windows.Forms.SplitContainer()
         Me.splitter3 = New System.Windows.Forms.SplitContainer()
+        Me.listInfo = New System.Windows.Forms.ListView()
+        Me.columnHeader1 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.columnHeader2 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.ListBox1 = New System.Windows.Forms.ListBox()
         Me.ToolStrip2 = New System.Windows.Forms.ToolStrip()
         Me.ToolStripLabel1 = New System.Windows.Forms.ToolStripLabel()
@@ -91,9 +95,7 @@ Partial Class frmDeviceFinder
         Me.columnHeader5 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.tabManaged = New System.Windows.Forms.TabPage()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.listInfo = New System.Windows.Forms.ListView()
-        Me.columnHeader1 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.columnHeader2 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
         CType(Me.splitter1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -359,11 +361,18 @@ Partial Class frmDeviceFinder
         '
         'StatusStrip1
         '
-        Me.StatusStrip1.Location = New System.Drawing.Point(0, 772)
+        Me.StatusStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus})
+        Me.StatusStrip1.Location = New System.Drawing.Point(0, 764)
         Me.StatusStrip1.Name = "StatusStrip1"
-        Me.StatusStrip1.Size = New System.Drawing.Size(1286, 22)
+        Me.StatusStrip1.Size = New System.Drawing.Size(1286, 30)
         Me.StatusStrip1.TabIndex = 0
         Me.StatusStrip1.Text = "StatusStrip1"
+        '
+        'lblStatus
+        '
+        Me.lblStatus.Name = "lblStatus"
+        Me.lblStatus.Size = New System.Drawing.Size(184, 25)
+        Me.lblStatus.Text = "ToolStripStatusLabel1"
         '
         'tabControl1
         '
@@ -373,7 +382,7 @@ Partial Class frmDeviceFinder
         Me.tabControl1.Location = New System.Drawing.Point(0, 0)
         Me.tabControl1.Name = "tabControl1"
         Me.tabControl1.SelectedIndex = 0
-        Me.tabControl1.Size = New System.Drawing.Size(1286, 772)
+        Me.tabControl1.Size = New System.Drawing.Size(1286, 764)
         Me.tabControl1.TabIndex = 1
         '
         'tabAvailable
@@ -383,7 +392,7 @@ Partial Class frmDeviceFinder
         Me.tabAvailable.Location = New System.Drawing.Point(4, 37)
         Me.tabAvailable.Name = "tabAvailable"
         Me.tabAvailable.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabAvailable.Size = New System.Drawing.Size(1278, 731)
+        Me.tabAvailable.Size = New System.Drawing.Size(1278, 723)
         Me.tabAvailable.TabIndex = 0
         Me.tabAvailable.Text = "Available UPnP Devices"
         '
@@ -401,7 +410,7 @@ Partial Class frmDeviceFinder
         'splitter1.Panel2
         '
         Me.splitter1.Panel2.Controls.Add(Me.splitter2)
-        Me.splitter1.Size = New System.Drawing.Size(1272, 725)
+        Me.splitter1.Size = New System.Drawing.Size(1272, 717)
         Me.splitter1.SplitterDistance = 326
         Me.splitter1.TabIndex = 1
         '
@@ -418,7 +427,7 @@ Partial Class frmDeviceFinder
         Me.deviceTree.Location = New System.Drawing.Point(0, 30)
         Me.deviceTree.Name = "deviceTree"
         Me.deviceTree.SelectedImageIndex = 0
-        Me.deviceTree.Size = New System.Drawing.Size(326, 695)
+        Me.deviceTree.Size = New System.Drawing.Size(326, 687)
         Me.deviceTree.TabIndex = 14
         '
         'ToolStrip1
@@ -465,8 +474,8 @@ Partial Class frmDeviceFinder
         'splitter2.Panel2
         '
         Me.splitter2.Panel2.Controls.Add(Me.eventListView)
-        Me.splitter2.Size = New System.Drawing.Size(942, 725)
-        Me.splitter2.SplitterDistance = 407
+        Me.splitter2.Size = New System.Drawing.Size(942, 717)
+        Me.splitter2.SplitterDistance = 402
         Me.splitter2.TabIndex = 0
         '
         'splitter3
@@ -485,9 +494,34 @@ Partial Class frmDeviceFinder
         '
         Me.splitter3.Panel2.Controls.Add(Me.ListBox1)
         Me.splitter3.Panel2.Controls.Add(Me.ToolStrip2)
-        Me.splitter3.Size = New System.Drawing.Size(942, 407)
+        Me.splitter3.Size = New System.Drawing.Size(942, 402)
         Me.splitter3.SplitterDistance = 620
         Me.splitter3.TabIndex = 0
+        '
+        'listInfo
+        '
+        Me.listInfo.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.listInfo.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.columnHeader1, Me.columnHeader2})
+        Me.listInfo.ContextMenu = Me.listInfoContextMenu
+        Me.listInfo.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.listInfo.FullRowSelect = True
+        Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
+        Me.listInfo.Location = New System.Drawing.Point(0, 6)
+        Me.listInfo.Name = "listInfo"
+        Me.listInfo.Size = New System.Drawing.Size(620, 396)
+        Me.listInfo.TabIndex = 17
+        Me.listInfo.UseCompatibleStateImageBehavior = False
+        Me.listInfo.View = System.Windows.Forms.View.Details
+        '
+        'columnHeader1
+        '
+        Me.columnHeader1.Text = "Name"
+        Me.columnHeader1.Width = 111
+        '
+        'columnHeader2
+        '
+        Me.columnHeader2.Text = "Value"
+        Me.columnHeader2.Width = 350
         '
         'ListBox1
         '
@@ -498,7 +532,7 @@ Partial Class frmDeviceFinder
         Me.ListBox1.ItemHeight = 28
         Me.ListBox1.Location = New System.Drawing.Point(0, 30)
         Me.ListBox1.Name = "ListBox1"
-        Me.ListBox1.Size = New System.Drawing.Size(318, 377)
+        Me.ListBox1.Size = New System.Drawing.Size(318, 372)
         Me.ListBox1.TabIndex = 1
         '
         'ToolStrip2
@@ -530,7 +564,8 @@ Partial Class frmDeviceFinder
         Me.eventListView.FullRowSelect = True
         Me.eventListView.Location = New System.Drawing.Point(0, 0)
         Me.eventListView.Name = "eventListView"
-        Me.eventListView.Size = New System.Drawing.Size(942, 314)
+        Me.eventListView.ShowItemToolTips = True
+        Me.eventListView.Size = New System.Drawing.Size(942, 311)
         Me.eventListView.TabIndex = 18
         Me.eventListView.UseCompatibleStateImageBehavior = False
         Me.eventListView.View = System.Windows.Forms.View.Details
@@ -560,7 +595,7 @@ Partial Class frmDeviceFinder
         Me.tabManaged.Location = New System.Drawing.Point(4, 37)
         Me.tabManaged.Name = "tabManaged"
         Me.tabManaged.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabManaged.Size = New System.Drawing.Size(1278, 731)
+        Me.tabManaged.Size = New System.Drawing.Size(1278, 723)
         Me.tabManaged.TabIndex = 1
         Me.tabManaged.Text = "Managed Devices"
         Me.tabManaged.UseVisualStyleBackColor = True
@@ -575,31 +610,6 @@ Partial Class frmDeviceFinder
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
         '
-        'listInfo
-        '
-        Me.listInfo.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.listInfo.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.columnHeader1, Me.columnHeader2})
-        Me.listInfo.ContextMenu = Me.listInfoContextMenu
-        Me.listInfo.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.listInfo.FullRowSelect = True
-        Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
-        Me.listInfo.Location = New System.Drawing.Point(0, 6)
-        Me.listInfo.Name = "listInfo"
-        Me.listInfo.Size = New System.Drawing.Size(620, 401)
-        Me.listInfo.TabIndex = 17
-        Me.listInfo.UseCompatibleStateImageBehavior = False
-        Me.listInfo.View = System.Windows.Forms.View.Details
-        '
-        'columnHeader1
-        '
-        Me.columnHeader1.Text = "Name"
-        Me.columnHeader1.Width = 111
-        '
-        'columnHeader2
-        '
-        Me.columnHeader2.Text = "Value"
-        Me.columnHeader2.Width = 350
-        '
         'frmDeviceFinder
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(11.0!, 28.0!)
@@ -612,6 +622,8 @@ Partial Class frmDeviceFinder
         Me.Menu = Me.mainMenu
         Me.Name = "frmDeviceFinder"
         Me.Text = "frmDeviceFinder"
+        Me.StatusStrip1.ResumeLayout(False)
+        Me.StatusStrip1.PerformLayout()
         Me.tabControl1.ResumeLayout(False)
         Me.tabAvailable.ResumeLayout(False)
         Me.splitter1.Panel1.ResumeLayout(False)
@@ -703,4 +715,5 @@ Partial Class frmDeviceFinder
     Private WithEvents listInfo As System.Windows.Forms.ListView
     Private WithEvents columnHeader1 As System.Windows.Forms.ColumnHeader
     Private WithEvents columnHeader2 As System.Windows.Forms.ColumnHeader
+    Friend WithEvents lblStatus As System.Windows.Forms.ToolStripStatusLabel
 End Class
