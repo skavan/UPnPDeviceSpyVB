@@ -3,15 +3,22 @@
 Public Class frmDeviceFinderClean
 
     Public Delegate Sub UpdateTreeDelegate(device As UPnPDevice, node As TreeNode)
-    Public Delegate Sub DeviceChangeHandler(device As UPnPDevice)
+    Public Delegate Sub DeviceChangeHandler(device As UPnPDevice, isManagedTree As Boolean)
     Public Delegate Sub ServiceDataChangedHandler(service As UPnPService, sender As UPnPStateVariable, data As Object)
     Public WithEvents disc As New discovery
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
 
     Private SubscribedList As New ArrayList
-    Private Categories As New Dictionary(Of String, String)
-    Private RootNodes As New Dictionary(Of String, TreeNode)
 
+    Private Categories As New Dictionary(Of String, String)
+    Private ManagedCategories As New Dictionary(Of String, String)
+
+    Private RootNodes As New Dictionary(Of String, TreeNode)
+    Private ManagedRootNodes As New Dictionary(Of String, TreeNode)
+
+    Private Const COMPLETEDEVICE = "Complete Device: "
+    Private Const AVTRANSPORTDEVICE = "AV Transport Device: "
+    Private Const COMPOUNDDEVICE = "Compound Device: "
 #Region "GUI Management"
 
     '// manage Toolstrip resizing and "spring" functionality
@@ -41,12 +48,26 @@ Public Class frmDeviceFinderClean
         Categories.Add("urn:schemas-upnp-org:device:MediaServer:1", "Media Servers")
         Categories.Add("OTHER", "Other")
 
+
+        ManagedCategories.Add(discovery.eManagedDeviceType.completeDevice, "Complete Devices")
+        ManagedCategories.Add(discovery.eManagedDeviceType.compoundDevice, "Compound Devices")
+        ManagedCategories.Add(discovery.eManagedDeviceType.avTranportDevice, "AVTransport Only")
+        'ManagedCategories.Add("OTHER", "Other")
+
         For Each item In Categories
             Dim root As New TreeNode(item.Value, 0, 0)
             root.Tag = item.Key
             RootNodes.Add(item.Key, root)
             Me.deviceTree.Nodes.Add(root)
         Next
+
+        For Each item In ManagedCategories
+            Dim root As New TreeNode(item.Value, 0, 0)
+            root.Tag = item.Key
+            ManagedRootNodes.Add(item.Key, root)
+            Me.ManagedTree.Nodes.Add(root)
+        Next
+
         disc.Init()
         GuiResizing()
     End Sub
@@ -55,7 +76,6 @@ Public Class frmDeviceFinderClean
         disc.CleanUp()
         disc = Nothing
     End Sub
-
 #End Region
 
 #Region "Callbacks"
@@ -63,10 +83,14 @@ Public Class frmDeviceFinderClean
     Private Sub disc_deviceDiscoveryEvent(device As UPnPDevice, deviceChangeEvent As discovery.eDeviceDiscoveryEvent) Handles disc.deviceDiscoveryEvent
         Select Case deviceChangeEvent
             Case discovery.eDeviceDiscoveryEvent.deviceAdded
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), device)
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, False})
                 'Me.AddDeviceToTree(device)
             Case discovery.eDeviceDiscoveryEvent.deviceRemoved
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {device})
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {device, False})
+            Case discovery.eDeviceDiscoveryEvent.managedDeviceAdded
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, True})
+            Case discovery.eDeviceDiscoveryEvent.managedDeviceRemoved
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), {device, False})
         End Select
 
     End Sub
@@ -91,6 +115,11 @@ Public Class frmDeviceFinderClean
         Me.presPageMenuItem.Visible = False
         Me.menuItem18.Visible = False
         Me.DeviceXMLmenuItem.Visible = False
+
+        Me.ManagedDeviceMenuItem.Visible = False
+        Me.ManagedDeviceSeperatorMenuItem.Visible = False
+        Me.AddCompoundDeviceMenuItem.Visible = False
+
         Me.ServiceXMLmenuItem.Visible = False
         Me.ValidateActionMenuItem.Visible = False
         Me.removeDeviceMenuItem.Visible = False
@@ -100,6 +129,43 @@ Public Class frmDeviceFinderClean
             Dim infoObject As Object = node.Tag
             If infoObject IsNot Nothing Then
                 If infoObject.[GetType]() Is GetType(UPnPDevice) Then
+                    Dim device As UPnPDevice = disc.FindTopMostDevice(infoObject)
+                    If (disc.CheckForService(device, discovery.AVTRANSPORT)) And (Not (disc.isManaged(device))) Then
+                        Me.ManagedDeviceMenuItem.Visible = True
+                        Me.ManagedDeviceSeperatorMenuItem.Visible = True
+                        Me.AddManagedDeviceMenuItem.Visible = True
+
+                        If disc.CheckForService(device, discovery.CONTENTDIRECTORY) Then '// It's a complete device
+                            AddManagedDeviceMenuItem.Text = COMPLETEDEVICE & device.FriendlyName
+                            Dim transportDevice As UPnPDevice = infoObject
+                            If disc.CheckChildrenForService(transportDevice, discovery.AVTRANSPORT) Then
+                                transportDevice = disc.FindChildDeviceWithService(transportDevice, discovery.AVTRANSPORT)
+                                AddCompoundDeviceMenuItem.Text = AVTRANSPORTDEVICE & transportDevice.FriendlyName
+                                AddCompoundDeviceMenuItem.Tag = transportDevice
+                                AddCompoundDeviceMenuItem.Visible = True
+
+
+                            End If
+                        Else
+                            '// let's find another device in the tree with a compatable IP address and matching service
+                            Dim siblingDevice As UPnPDevice = disc.FindSiblingDevice(device, discovery.CONTENTDIRECTORY)
+                            If siblingDevice Is Nothing Then
+                                '// AV Transport Only
+                                AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
+
+                            Else
+                                AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
+                                AddCompoundDeviceMenuItem.Visible = True
+                                AddCompoundDeviceMenuItem.Text = String.Format("{0}{1}+{2}", COMPOUNDDEVICE, device.FriendlyName, siblingDevice.FriendlyName)
+                                AddCompoundDeviceMenuItem.Tag = {device, siblingDevice}
+
+                            End If
+                        End If
+                        AddManagedDeviceMenuItem.Tag = device
+
+                    End If
+
+
                     If (CType(infoObject, UPnPDevice)).ParentDevice Is Nothing Then
                         Me.removeDeviceMenuItem.Visible = True
                     End If
@@ -124,6 +190,24 @@ Public Class frmDeviceFinderClean
                     Me.menuItem18.Visible = True
                 End If
             End If
+        End If
+    End Sub
+
+    Private Sub AddManagedDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles AddManagedDeviceMenuItem.Click
+        Dim menuItem As MenuItem = sender
+        If menuItem.Text.Contains(COMPLETEDEVICE) Then
+            disc.AddManagedDevice(menuItem.Tag)
+        Else
+            disc.AddManagedDevice(menuItem.Tag)
+        End If
+    End Sub
+
+    Private Sub AddCompoundDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles AddCompoundDeviceMenuItem.Click
+        Dim menuItem As MenuItem = sender
+        If menuItem.Text.Contains(AVTRANSPORTDEVICE) Then
+            disc.AddManagedDevice(menuItem.Tag)
+        Else
+            disc.AddManagedDevice(menuItem.Tag(0), menuItem.Tag(1))
         End If
     End Sub
 
@@ -189,9 +273,23 @@ Public Class frmDeviceFinderClean
 
     '// expand tree
     Private Sub expandAllMenuItem2_Click(sender As Object, e As EventArgs) Handles expandAllMenuItem2.Click
-        If Me.deviceTree.SelectedNode IsNot Nothing Then
-            Me.deviceTree.SelectedNode.Expand()
-            Dim node As TreeNode = Me.deviceTree.SelectedNode
+        Dim menuItem As MenuItem = sender
+        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
+            Debug.Print("DEVICE TREE")
+            ExpandNode(deviceTree)
+        Else
+            Debug.Print("MANAGED TREE")
+            ExpandNode(ManagedTree)
+        End If
+
+        
+    End Sub
+
+    '// Private 
+    Private Sub ExpandNode(tree As TreeView)
+        If tree.SelectedNode IsNot Nothing Then
+            tree.SelectedNode.Expand()
+            Dim node As TreeNode = tree.SelectedNode
             For Each child As TreeNode In node.Nodes
                 If child.ImageIndex = 1 Then
                     '// this means its a device
@@ -199,15 +297,12 @@ Public Class frmDeviceFinderClean
                 End If
             Next
         End If
-
-
     End Sub
 
-    '//collapse tree
-    Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
-        If Me.deviceTree.SelectedNode IsNot Nothing Then
-            Me.deviceTree.SelectedNode.Collapse()
-            Dim node As TreeNode = Me.deviceTree.SelectedNode
+    Private Sub CollapseNode(tree As TreeView)
+        If tree.SelectedNode IsNot Nothing Then
+            tree.SelectedNode.Collapse()
+            Dim node As TreeNode = tree.SelectedNode
             For Each child As TreeNode In node.Nodes
                 If child.Nodes.Count > 0 Then
                     'child.Expand()
@@ -215,19 +310,41 @@ Public Class frmDeviceFinderClean
             Next
         End If
     End Sub
+
+    '//collapse tree
+    Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
+        Dim menuItem As MenuItem = sender
+        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
+            CollapseNode(deviceTree)
+        Else
+
+            CollapseNode(ManagedTree)
+        End If
+    End Sub
 #End Region
 
 #Region "Tree and ListInfo Routines"
 
-    Protected Sub AddDeviceToTree(device As UPnPDevice)
-        Dim parent As TreeNode = CreateTreeNode(device)
-        Dim args As Object() = New Object() {device, parent}
-        UpdateTree(device, parent)
+    Protected Sub AddDeviceToTree(device As UPnPDevice, isManagedTree As Boolean)
+        Dim parentNode As TreeNode
+        If isManagedTree Then
+            parentNode = CreateTreeNode(device, False)
+        Else
+            parentNode = CreateTreeNode(device, True)
+        End If
+
+        UpdateTree(device, parentNode, isManagedTree)
         'MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
     End Sub
 
-    Protected Sub RemovedDeviceFromTree(device As UPnPDevice)
-        Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
+    Protected Sub RemovedDeviceFromTree(device As UPnPDevice, isManagedTree As Boolean)
+        Dim root As TreeNode
+        If isManagedTree Then
+            root = GetManagedCategoryNode(ManagedRootNodes, ManagedCategories, device, "OTHER")
+        Else
+            root = GetCategoryNode(RootNodes, Categories, device, "OTHER")
+        End If
+        'Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
         Dim TempList As ArrayList = New ArrayList()
         Dim en As IEnumerator = root.Nodes.GetEnumerator()
         While en.MoveNext()
@@ -243,8 +360,13 @@ Public Class frmDeviceFinderClean
         Next
     End Sub
 
-    Protected Sub UpdateTree(device As UPnPDevice, node As TreeNode)
-        Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
+    Protected Sub UpdateTree(device As UPnPDevice, node As TreeNode, isManagedTree As Boolean)
+        Dim root As TreeNode
+        If isManagedTree Then
+            root = GetManagedCategoryNode(ManagedRootNodes, ManagedCategories, device, "OTHER")
+        Else
+            root = GetCategoryNode(RootNodes, Categories, device, "OTHER")
+        End If
         If root.Nodes.Count = 0 Then
             root.Nodes.Add(node)
         Else
@@ -330,6 +452,5 @@ Public Class frmDeviceFinderClean
 #End Region
 
 
-    
-    
+
 End Class

@@ -2,12 +2,16 @@
 
 Module modUtils
 
-    Function CreateTreeNode(device As UPnPDevice) As TreeNode
+    Function CreateTreeNode(device As UPnPDevice, bForceParent As Boolean) As TreeNode
         Dim TempList As SortedList = New SortedList()
-        '// force escalation to parent device
-        If device.ParentDevice IsNot Nothing Then
-            device = device.ParentDevice
+        If bForceParent Then
+            '// force escalation to parent device
+            If device.ParentDevice IsNot Nothing Then
+                device = device.ParentDevice
+            End If
+
         End If
+        
         Dim Parent As TreeNode = New TreeNode(device.FriendlyName, 1, 1)
         Parent.Tag = device
 
@@ -307,18 +311,25 @@ Module modUtils
         End If
     End Function
 
-    Public Function GetCategoryNode(RootNodes As Dictionary(Of String, TreeNode), Categories As Dictionary(Of String, String), device As UPnPDevice) As TreeNode
+    Public Function GetCategoryNode(RootNodes As Dictionary(Of String, TreeNode), Categories As Dictionary(Of String, String), device As UPnPDevice, exception As String) As TreeNode
 
         If Categories.ContainsKey(device.DeviceURN) Then
             Return RootNodes(device.DeviceURN)
         Else
             For Each childDevice As UPnPDevice In device.EmbeddedDevices
-                Return GetCategoryNode(RootNodes, Categories, childDevice)
+                Return GetCategoryNode(RootNodes, Categories, childDevice, exception)
             Next
         End If
-        Return RootNodes("OTHER")
+        Return RootNodes(exception)
     End Function
 
+    Public Function GetManagedCategoryNode(ManagedRootNodes As Dictionary(Of String, TreeNode), Categories As Dictionary(Of String, String), device As UPnPDevice, exception As String) As TreeNode
+        If Categories.ContainsKey(device.User) Then
+            Return ManagedRootNodes(device.User)
+        Else
+            Return ManagedRootNodes(exception)
+        End If
+    End Function
 
     ''// given a device and a ServiceID, go find another device with the same ipaddress that has the target ServiceID in its tree.
     'Public Function FindSiblingDevice(device As UPnPDevice, targetServiceID As String) As UPnPDevice

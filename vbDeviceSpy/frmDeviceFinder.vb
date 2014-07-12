@@ -253,6 +253,7 @@ Public Class frmDeviceFinder
     End Sub
 
     Private Sub expandAllMenuItem2_Click(sender As Object, e As EventArgs) Handles expandAllMenuItem2.Click
+
         If Me.deviceTree.SelectedNode IsNot Nothing Then
             Me.deviceTree.SelectedNode.Expand()
             Dim node As TreeNode = Me.deviceTree.SelectedNode
@@ -282,9 +283,9 @@ Public Class frmDeviceFinder
 #Region "Tree and ListInfo Routines"
 
     Protected Sub AddDeviceToTree(device As UPnPDevice, URL As Uri)
-        Dim parent As TreeNode = CreateTreeNode(device)
-        Dim args As Object() = New Object() {device, parent}
-        MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
+        'Dim parent As TreeNode = CreateTreeNode(device)
+        'Dim args As Object() = New Object() {device, parent}
+        'MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
     End Sub
 
     Function GetRootNode(device As UPnPDevice) As TreeNode

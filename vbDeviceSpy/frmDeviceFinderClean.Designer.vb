@@ -54,6 +54,10 @@ Partial Class frmDeviceFinderClean
         Me.copyTableCpMenuItem = New System.Windows.Forms.MenuItem()
         Me.treeImageList = New System.Windows.Forms.ImageList(Me.components)
         Me.deviceContextMenu = New System.Windows.Forms.ContextMenu()
+        Me.ManagedDeviceMenuItem = New System.Windows.Forms.MenuItem()
+        Me.AddManagedDeviceMenuItem = New System.Windows.Forms.MenuItem()
+        Me.AddCompoundDeviceMenuItem = New System.Windows.Forms.MenuItem()
+        Me.ManagedDeviceSeperatorMenuItem = New System.Windows.Forms.MenuItem()
         Me.presPageMenuItem = New System.Windows.Forms.MenuItem()
         Me.eventSubscribeMenuItem = New System.Windows.Forms.MenuItem()
         Me.invokeActionMenuItem = New System.Windows.Forms.MenuItem()
@@ -85,7 +89,6 @@ Partial Class frmDeviceFinderClean
         Me.listInfo = New System.Windows.Forms.ListView()
         Me.columnHeader1 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.columnHeader2 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ListBox1 = New System.Windows.Forms.ListBox()
         Me.ToolStrip2 = New System.Windows.Forms.ToolStrip()
         Me.ToolStripLabel1 = New System.Windows.Forms.ToolStripLabel()
         Me.eventListView = New System.Windows.Forms.ListView()
@@ -95,6 +98,7 @@ Partial Class frmDeviceFinderClean
         Me.columnHeader5 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.tabManaged = New System.Windows.Forms.TabPage()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
+        Me.ManagedTree = New System.Windows.Forms.TreeView()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -269,69 +273,90 @@ Partial Class frmDeviceFinderClean
         '
         'deviceContextMenu
         '
-        Me.deviceContextMenu.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.presPageMenuItem, Me.eventSubscribeMenuItem, Me.invokeActionMenuItem, Me.ValidateActionMenuItem, Me.DeviceXMLmenuItem, Me.ServiceXMLmenuItem, Me.removeDeviceMenuItem, Me.menuItem18, Me.expandAllMenuItem2, Me.collapseAllMenuItem2, Me.menuItem21, Me.rescanNetworkMenuItem})
+        Me.deviceContextMenu.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.ManagedDeviceMenuItem, Me.ManagedDeviceSeperatorMenuItem, Me.presPageMenuItem, Me.eventSubscribeMenuItem, Me.invokeActionMenuItem, Me.ValidateActionMenuItem, Me.DeviceXMLmenuItem, Me.ServiceXMLmenuItem, Me.removeDeviceMenuItem, Me.menuItem18, Me.expandAllMenuItem2, Me.collapseAllMenuItem2, Me.menuItem21, Me.rescanNetworkMenuItem})
+        '
+        'ManagedDeviceMenuItem
+        '
+        Me.ManagedDeviceMenuItem.Index = 0
+        Me.ManagedDeviceMenuItem.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.AddManagedDeviceMenuItem, Me.AddCompoundDeviceMenuItem})
+        Me.ManagedDeviceMenuItem.Text = "Add to Managed Devices"
+        '
+        'AddManagedDeviceMenuItem
+        '
+        Me.AddManagedDeviceMenuItem.Index = 0
+        Me.AddManagedDeviceMenuItem.Text = "Transport/Full"
+        '
+        'AddCompoundDeviceMenuItem
+        '
+        Me.AddCompoundDeviceMenuItem.Index = 1
+        Me.AddCompoundDeviceMenuItem.Text = "Compound"
+        '
+        'ManagedDeviceSeperatorMenuItem
+        '
+        Me.ManagedDeviceSeperatorMenuItem.Index = 1
+        Me.ManagedDeviceSeperatorMenuItem.Text = "-"
         '
         'presPageMenuItem
         '
         Me.presPageMenuItem.DefaultItem = True
-        Me.presPageMenuItem.Index = 0
+        Me.presPageMenuItem.Index = 2
         Me.presPageMenuItem.Text = "Display Presentation Page"
         '
         'eventSubscribeMenuItem
         '
         Me.eventSubscribeMenuItem.DefaultItem = True
-        Me.eventSubscribeMenuItem.Index = 1
+        Me.eventSubscribeMenuItem.Index = 3
         Me.eventSubscribeMenuItem.Text = "Subscribe to Events"
         '
         'invokeActionMenuItem
         '
         Me.invokeActionMenuItem.DefaultItem = True
-        Me.invokeActionMenuItem.Index = 2
+        Me.invokeActionMenuItem.Index = 4
         Me.invokeActionMenuItem.Text = "Invoke Action"
         '
         'ValidateActionMenuItem
         '
-        Me.ValidateActionMenuItem.Index = 3
+        Me.ValidateActionMenuItem.Index = 5
         Me.ValidateActionMenuItem.Text = "Validate Actions"
         '
         'DeviceXMLmenuItem
         '
-        Me.DeviceXMLmenuItem.Index = 4
+        Me.DeviceXMLmenuItem.Index = 6
         Me.DeviceXMLmenuItem.Text = "Get Device XML"
         '
         'ServiceXMLmenuItem
         '
-        Me.ServiceXMLmenuItem.Index = 5
+        Me.ServiceXMLmenuItem.Index = 7
         Me.ServiceXMLmenuItem.Text = "Get Service XML"
         '
         'removeDeviceMenuItem
         '
-        Me.removeDeviceMenuItem.Index = 6
+        Me.removeDeviceMenuItem.Index = 8
         Me.removeDeviceMenuItem.Text = "Remove Device"
         '
         'menuItem18
         '
-        Me.menuItem18.Index = 7
+        Me.menuItem18.Index = 9
         Me.menuItem18.Text = "-"
         '
         'expandAllMenuItem2
         '
-        Me.expandAllMenuItem2.Index = 8
+        Me.expandAllMenuItem2.Index = 10
         Me.expandAllMenuItem2.Text = "&Expand all devices"
         '
         'collapseAllMenuItem2
         '
-        Me.collapseAllMenuItem2.Index = 9
+        Me.collapseAllMenuItem2.Index = 11
         Me.collapseAllMenuItem2.Text = "&Collapse all devices"
         '
         'menuItem21
         '
-        Me.menuItem21.Index = 10
+        Me.menuItem21.Index = 12
         Me.menuItem21.Text = "-"
         '
         'rescanNetworkMenuItem
         '
-        Me.rescanNetworkMenuItem.Index = 11
+        Me.rescanNetworkMenuItem.Index = 13
         Me.rescanNetworkMenuItem.Text = "Rescan network"
         '
         'eventListViewContextMenu
@@ -492,7 +517,7 @@ Partial Class frmDeviceFinderClean
         '
         'splitter3.Panel2
         '
-        Me.splitter3.Panel2.Controls.Add(Me.ListBox1)
+        Me.splitter3.Panel2.Controls.Add(Me.ManagedTree)
         Me.splitter3.Panel2.Controls.Add(Me.ToolStrip2)
         Me.splitter3.Size = New System.Drawing.Size(874, 412)
         Me.splitter3.SplitterDistance = 575
@@ -522,18 +547,6 @@ Partial Class frmDeviceFinderClean
         '
         Me.columnHeader2.Text = "Value"
         Me.columnHeader2.Width = 350
-        '
-        'ListBox1
-        '
-        Me.ListBox1.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.ListBox1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.ListBox1.FormattingEnabled = True
-        Me.ListBox1.IntegralHeight = False
-        Me.ListBox1.ItemHeight = 17
-        Me.ListBox1.Location = New System.Drawing.Point(0, 30)
-        Me.ListBox1.Name = "ListBox1"
-        Me.ListBox1.Size = New System.Drawing.Size(295, 382)
-        Me.ListBox1.TabIndex = 1
         '
         'ToolStrip2
         '
@@ -595,7 +608,7 @@ Partial Class frmDeviceFinderClean
         Me.tabManaged.Location = New System.Drawing.Point(4, 26)
         Me.tabManaged.Name = "tabManaged"
         Me.tabManaged.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabManaged.Size = New System.Drawing.Size(1278, 734)
+        Me.tabManaged.Size = New System.Drawing.Size(1278, 742)
         Me.tabManaged.TabIndex = 1
         Me.tabManaged.Text = "Managed Devices"
         Me.tabManaged.UseVisualStyleBackColor = True
@@ -609,6 +622,22 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
+        '
+        'ManagedTree
+        '
+        Me.ManagedTree.BackColor = System.Drawing.Color.White
+        Me.ManagedTree.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.ManagedTree.ContextMenu = Me.deviceContextMenu
+        Me.ManagedTree.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.ManagedTree.ImageIndex = 0
+        Me.ManagedTree.ImageList = Me.treeImageList
+        Me.ManagedTree.Indent = 19
+        Me.ManagedTree.ItemHeight = 16
+        Me.ManagedTree.Location = New System.Drawing.Point(0, 30)
+        Me.ManagedTree.Name = "ManagedTree"
+        Me.ManagedTree.SelectedImageIndex = 0
+        Me.ManagedTree.Size = New System.Drawing.Size(295, 382)
+        Me.ManagedTree.TabIndex = 15
         '
         'frmDeviceFinderClean
         '
@@ -703,7 +732,6 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents splitter3 As System.Windows.Forms.SplitContainer
     Friend WithEvents tabManaged As System.Windows.Forms.TabPage
     Private WithEvents deviceTree As System.Windows.Forms.TreeView
-    Friend WithEvents ListBox1 As System.Windows.Forms.ListBox
     Friend WithEvents ToolStrip2 As System.Windows.Forms.ToolStrip
     Friend WithEvents ToolStripLabel1 As System.Windows.Forms.ToolStripLabel
     Private WithEvents eventListView As System.Windows.Forms.ListView
@@ -716,4 +744,9 @@ Partial Class frmDeviceFinderClean
     Private WithEvents columnHeader1 As System.Windows.Forms.ColumnHeader
     Private WithEvents columnHeader2 As System.Windows.Forms.ColumnHeader
     Friend WithEvents lblStatus As System.Windows.Forms.ToolStripStatusLabel
+    Friend WithEvents ManagedDeviceMenuItem As System.Windows.Forms.MenuItem
+    Friend WithEvents AddManagedDeviceMenuItem As System.Windows.Forms.MenuItem
+    Friend WithEvents AddCompoundDeviceMenuItem As System.Windows.Forms.MenuItem
+    Friend WithEvents ManagedDeviceSeperatorMenuItem As System.Windows.Forms.MenuItem
+    Private WithEvents ManagedTree As System.Windows.Forms.TreeView
 End Class
