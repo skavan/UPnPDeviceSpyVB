@@ -595,7 +595,7 @@ Partial Class frmDeviceFinderClean
         Me.tabManaged.Location = New System.Drawing.Point(4, 26)
         Me.tabManaged.Name = "tabManaged"
         Me.tabManaged.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabManaged.Size = New System.Drawing.Size(1278, 734)
+        Me.tabManaged.Size = New System.Drawing.Size(1278, 742)
         Me.tabManaged.TabIndex = 1
         Me.tabManaged.Text = "Managed Devices"
         Me.tabManaged.UseVisualStyleBackColor = True
