@@ -108,8 +108,12 @@ Public Class frmDeviceFinderClean
 
 #Region "Form and GUI Events"
 
-    '// Popup Menu and Associated menu Items
-    Private Sub deviceTree_MouseDown(sender As Object, e As MouseEventArgs) Handles deviceTree.MouseDown
+    Private Sub ManagedTree_MouseDown(sender As Object, e As MouseEventArgs) Handles ManagedTree.MouseDown
+        ResetPopupMenuItems()
+        ProcessNodePopupMenu(ManagedTree, e)
+    End Sub
+
+    Private Sub ResetPopupMenuItems()
         Me.eventSubscribeMenuItem.Visible = False
         Me.invokeActionMenuItem.Visible = False
         Me.presPageMenuItem.Visible = False
@@ -123,48 +127,54 @@ Public Class frmDeviceFinderClean
         Me.ServiceXMLmenuItem.Visible = False
         Me.ValidateActionMenuItem.Visible = False
         Me.removeDeviceMenuItem.Visible = False
-        Dim node As TreeNode = Me.deviceTree.GetNodeAt(e.X, e.Y)
+    End Sub
+
+    '// do the hard work of setting up the popup menu
+    Private Sub ProcessNodePopupMenu(tree As TreeView, e As MouseEventArgs)
+        ResetPopupMenuItems()
+        Dim node As TreeNode = tree.GetNodeAt(e.X, e.Y)                                                                         '// get the node
         If node IsNot Nothing Then
-            Me.deviceTree.SelectedNode = node
+            tree.SelectedNode = node
             Dim infoObject As Object = node.Tag
             If infoObject IsNot Nothing Then
-                If infoObject.[GetType]() Is GetType(UPnPDevice) Then
+                If infoObject.[GetType]() Is GetType(UPnPDevice) Then                                                           '// if the node is a device
                     Dim device As UPnPDevice = disc.FindTopMostDevice(infoObject)
-                    If (disc.CheckForService(device, discovery.AVTRANSPORT)) And (Not (disc.isManaged(device))) Then
-                        Me.ManagedDeviceMenuItem.Visible = True
-                        Me.ManagedDeviceSeperatorMenuItem.Visible = True
-                        Me.AddManagedDeviceMenuItem.Visible = True
+                    If tree Is deviceTree Then                                                                                  '// if its the device tree then build the Add to Managed stuff
+                        If (disc.CheckForService(device, discovery.AVTRANSPORT)) And (Not (disc.isManaged(device))) Then
+                            Me.ManagedDeviceMenuItem.Visible = True
+                            Me.ManagedDeviceSeperatorMenuItem.Visible = True
+                            Me.AddManagedDeviceMenuItem.Visible = True
 
-                        If disc.CheckForService(device, discovery.CONTENTDIRECTORY) Then '// It's a complete device
-                            AddManagedDeviceMenuItem.Text = COMPLETEDEVICE & device.FriendlyName
-                            Dim transportDevice As UPnPDevice = infoObject
-                            If disc.CheckChildrenForService(transportDevice, discovery.AVTRANSPORT) Then
-                                transportDevice = disc.FindChildDeviceWithService(transportDevice, discovery.AVTRANSPORT)
-                                AddCompoundDeviceMenuItem.Text = AVTRANSPORTDEVICE & transportDevice.FriendlyName
-                                AddCompoundDeviceMenuItem.Tag = transportDevice
-                                AddCompoundDeviceMenuItem.Visible = True
+                            If disc.CheckForService(device, discovery.CONTENTDIRECTORY) Then '// It's a complete device
+                                AddManagedDeviceMenuItem.Text = COMPLETEDEVICE & device.FriendlyName
+                                Dim transportDevice As UPnPDevice = infoObject
+                                If disc.CheckChildrenForService(transportDevice, discovery.AVTRANSPORT) Then
+                                    transportDevice = disc.FindChildDeviceWithService(transportDevice, discovery.AVTRANSPORT)
+                                    AddCompoundDeviceMenuItem.Text = AVTRANSPORTDEVICE & transportDevice.FriendlyName
+                                    AddCompoundDeviceMenuItem.Tag = transportDevice
+                                    AddCompoundDeviceMenuItem.Visible = True
 
 
-                            End If
-                        Else
-                            '// let's find another device in the tree with a compatable IP address and matching service
-                            Dim siblingDevice As UPnPDevice = disc.FindSiblingDevice(device, discovery.CONTENTDIRECTORY)
-                            If siblingDevice Is Nothing Then
-                                '// AV Transport Only
-                                AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
-
+                                End If
                             Else
-                                AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
-                                AddCompoundDeviceMenuItem.Visible = True
-                                AddCompoundDeviceMenuItem.Text = String.Format("{0}{1}+{2}", COMPOUNDDEVICE, device.FriendlyName, siblingDevice.FriendlyName)
-                                AddCompoundDeviceMenuItem.Tag = {device, siblingDevice}
+                                '// let's find another device in the tree with a compatable IP address and matching service
+                                Dim siblingDevice As UPnPDevice = disc.FindSiblingDevice(device, discovery.CONTENTDIRECTORY)
+                                If siblingDevice Is Nothing Then
+                                    '// AV Transport Only
+                                    AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
 
+                                Else
+                                    AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
+                                    AddCompoundDeviceMenuItem.Visible = True
+                                    AddCompoundDeviceMenuItem.Text = String.Format("{0}{1}+{2}", COMPOUNDDEVICE, device.FriendlyName, siblingDevice.FriendlyName)
+                                    AddCompoundDeviceMenuItem.Tag = {device, siblingDevice}
+
+                                End If
                             End If
+                            AddManagedDeviceMenuItem.Tag = device
+
                         End If
-                        AddManagedDeviceMenuItem.Tag = device
-
                     End If
-
 
                     If (CType(infoObject, UPnPDevice)).ParentDevice Is Nothing Then
                         Me.removeDeviceMenuItem.Visible = True
@@ -178,6 +188,7 @@ Public Class frmDeviceFinderClean
                         Me.menuItem18.Visible = True
                     End If
                 End If
+
                 If infoObject.[GetType]() Is GetType(UPnPService) Then
                     Me.ValidateActionMenuItem.Visible = True
                     Me.eventSubscribeMenuItem.Visible = True
@@ -191,6 +202,13 @@ Public Class frmDeviceFinderClean
                 End If
             End If
         End If
+    End Sub
+
+    '// Popup Menu and Associated menu Items for deviceTree
+    Private Sub deviceTree_MouseDown(sender As Object, e As MouseEventArgs) Handles deviceTree.MouseDown
+        ResetPopupMenuItems()
+        ProcessNodePopupMenu(deviceTree, e)
+        
     End Sub
 
     Private Sub AddManagedDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles AddManagedDeviceMenuItem.Click
@@ -238,25 +256,35 @@ Public Class frmDeviceFinderClean
 
     '// menu item -- Subscribe/Unsubscribe to Events
     Private Sub eventSubscribeMenuItem_Click(sender As Object, e As EventArgs) Handles eventSubscribeMenuItem.Click
-        If Me.deviceTree.SelectedNode IsNot Nothing Then
-            If Me.deviceTree.SelectedNode.Tag IsNot Nothing Then
-                Dim obj As Object = Me.deviceTree.SelectedNode.Tag
+        Dim menuItem As MenuItem = sender
+        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
+            SubscribeToService(deviceTree)
+        Else
+            Debug.Print("MANAGED TREE")
+            SubscribeToService(ManagedTree)
+        End If
+    End Sub
+
+    Private Sub SubscribeToService(tree As TreeView)
+        If tree.SelectedNode IsNot Nothing Then
+            If tree.SelectedNode.Tag IsNot Nothing Then
+                Dim obj As Object = tree.SelectedNode.Tag
                 If obj.[GetType]() Is GetType(UPnPService) Then
                     Dim service As UPnPService = DirectCast(obj, UPnPService)
-                    If Not Me.deviceTree.SelectedNode.Checked Then
+                    If Not tree.SelectedNode.Checked Then
                         Me.splitter2.Visible = True
                         Me.eventListView.Visible = True
                         Me.menuItem3.Checked = True
-                        Me.deviceTree.SelectedNode.ImageIndex = 3
-                        Me.deviceTree.SelectedNode.SelectedImageIndex = 3
-                        Me.deviceTree.SelectedNode.Checked = True
-
+                        tree.SelectedNode.ImageIndex = 3
+                        tree.SelectedNode.SelectedImageIndex = 3
+                        tree.SelectedNode.Checked = True
+                        tree.SelectedNode.ForeColor = Color.Red
                         disc.Subscribe(service)
                     Else
-                        Me.deviceTree.SelectedNode.ImageIndex = 2
-                        Me.deviceTree.SelectedNode.SelectedImageIndex = 2
-                        Me.deviceTree.SelectedNode.Checked = False
-
+                        tree.SelectedNode.ImageIndex = 2
+                        tree.SelectedNode.SelectedImageIndex = 2
+                        tree.SelectedNode.Checked = False
+                        tree.SelectedNode.ForeColor = Color.Black
                         disc.UnSubscribe(service)
                     End If
                 End If
@@ -285,7 +313,7 @@ Public Class frmDeviceFinderClean
         
     End Sub
 
-    '// Private 
+    '// Private routine to do the work
     Private Sub ExpandNode(tree As TreeView)
         If tree.SelectedNode IsNot Nothing Then
             tree.SelectedNode.Expand()
@@ -299,6 +327,7 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
+    '// Private routine to do the work
     Private Sub CollapseNode(tree As TreeView)
         If tree.SelectedNode IsNot Nothing Then
             tree.SelectedNode.Collapse()

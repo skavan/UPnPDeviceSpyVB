@@ -89,6 +89,7 @@ Partial Class frmDeviceFinderClean
         Me.listInfo = New System.Windows.Forms.ListView()
         Me.columnHeader1 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.columnHeader2 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ManagedTree = New System.Windows.Forms.TreeView()
         Me.ToolStrip2 = New System.Windows.Forms.ToolStrip()
         Me.ToolStripLabel1 = New System.Windows.Forms.ToolStripLabel()
         Me.eventListView = New System.Windows.Forms.ListView()
@@ -98,7 +99,6 @@ Partial Class frmDeviceFinderClean
         Me.columnHeader5 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.tabManaged = New System.Windows.Forms.TabPage()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.ManagedTree = New System.Windows.Forms.TreeView()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -520,7 +520,7 @@ Partial Class frmDeviceFinderClean
         Me.splitter3.Panel2.Controls.Add(Me.ManagedTree)
         Me.splitter3.Panel2.Controls.Add(Me.ToolStrip2)
         Me.splitter3.Size = New System.Drawing.Size(874, 412)
-        Me.splitter3.SplitterDistance = 575
+        Me.splitter3.SplitterDistance = 480
         Me.splitter3.TabIndex = 0
         '
         'listInfo
@@ -533,7 +533,7 @@ Partial Class frmDeviceFinderClean
         Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
         Me.listInfo.Location = New System.Drawing.Point(0, 6)
         Me.listInfo.Name = "listInfo"
-        Me.listInfo.Size = New System.Drawing.Size(575, 406)
+        Me.listInfo.Size = New System.Drawing.Size(480, 406)
         Me.listInfo.TabIndex = 17
         Me.listInfo.UseCompatibleStateImageBehavior = False
         Me.listInfo.View = System.Windows.Forms.View.Details
@@ -548,6 +548,22 @@ Partial Class frmDeviceFinderClean
         Me.columnHeader2.Text = "Value"
         Me.columnHeader2.Width = 350
         '
+        'ManagedTree
+        '
+        Me.ManagedTree.BackColor = System.Drawing.Color.White
+        Me.ManagedTree.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.ManagedTree.ContextMenu = Me.deviceContextMenu
+        Me.ManagedTree.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.ManagedTree.ImageIndex = 0
+        Me.ManagedTree.ImageList = Me.treeImageList
+        Me.ManagedTree.Indent = 19
+        Me.ManagedTree.ItemHeight = 16
+        Me.ManagedTree.Location = New System.Drawing.Point(0, 30)
+        Me.ManagedTree.Name = "ManagedTree"
+        Me.ManagedTree.SelectedImageIndex = 0
+        Me.ManagedTree.Size = New System.Drawing.Size(390, 382)
+        Me.ManagedTree.TabIndex = 15
+        '
         'ToolStrip2
         '
         Me.ToolStrip2.AutoSize = False
@@ -556,7 +572,7 @@ Partial Class frmDeviceFinderClean
         Me.ToolStrip2.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripLabel1})
         Me.ToolStrip2.Location = New System.Drawing.Point(0, 0)
         Me.ToolStrip2.Name = "ToolStrip2"
-        Me.ToolStrip2.Size = New System.Drawing.Size(295, 30)
+        Me.ToolStrip2.Size = New System.Drawing.Size(390, 30)
         Me.ToolStrip2.TabIndex = 0
         Me.ToolStrip2.Text = "ToolStrip2"
         '
@@ -622,22 +638,6 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
-        '
-        'ManagedTree
-        '
-        Me.ManagedTree.BackColor = System.Drawing.Color.White
-        Me.ManagedTree.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.ManagedTree.ContextMenu = Me.deviceContextMenu
-        Me.ManagedTree.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.ManagedTree.ImageIndex = 0
-        Me.ManagedTree.ImageList = Me.treeImageList
-        Me.ManagedTree.Indent = 19
-        Me.ManagedTree.ItemHeight = 16
-        Me.ManagedTree.Location = New System.Drawing.Point(0, 30)
-        Me.ManagedTree.Name = "ManagedTree"
-        Me.ManagedTree.SelectedImageIndex = 0
-        Me.ManagedTree.Size = New System.Drawing.Size(295, 382)
-        Me.ManagedTree.TabIndex = 15
         '
         'frmDeviceFinderClean
         '
