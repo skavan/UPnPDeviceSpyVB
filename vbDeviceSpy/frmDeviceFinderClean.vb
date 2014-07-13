@@ -4,6 +4,7 @@ Public Class frmDeviceFinderClean
 
     Public Delegate Sub UpdateTreeDelegate(device As UPnPDevice, node As TreeNode)
     Public Delegate Sub DeviceChangeHandler(device As UPnPDevice, isManagedTree As Boolean)
+    Public Delegate Sub ServiceSubscribedHandler(device As UPnPDevice, service As UPnPService)
     Public Delegate Sub ServiceDataChangedHandler(service As UPnPService, sender As UPnPStateVariable, data As Object)
     Public WithEvents disc As New discovery
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
@@ -353,7 +354,9 @@ Public Class frmDeviceFinderClean
 #End Region
 
 #Region "Tree and ListInfo Routines"
+    Private Sub UpdateSubscribedService(device As UPnPDevice, service As UPnPService)
 
+    End Sub
     Protected Sub AddDeviceToTree(device As UPnPDevice, isManagedTree As Boolean)
         Dim parentNode As TreeNode
         If isManagedTree Then
