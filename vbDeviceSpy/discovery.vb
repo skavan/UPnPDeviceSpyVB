@@ -43,7 +43,7 @@ Public Class discovery
 #End Region
 
 #Region "Exposed Properties and Methods"
-
+    '// Look inside the ManagedDevices ArrayList and see if the specified device exists
     Public Function isManaged(device As UPnPDevice) As Boolean
         If ManagedDevices.Contains(device) Then
             Return True
@@ -52,6 +52,7 @@ Public Class discovery
         End If
     End Function
 
+    '// Add
     Public Sub AddManagedDevice(device As UPnPDevice)
         Debug.Print("Adding " & device.FriendlyName)
         If CheckChildrenForService(device, CONTENTDIRECTORY) Then

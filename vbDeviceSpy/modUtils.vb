@@ -1,4 +1,6 @@
 ﻿Imports OpenSource.UPnP
+Imports System.Net.NetworkInformation
+Imports System.Net
 
 Module modUtils
 
@@ -11,7 +13,7 @@ Module modUtils
             End If
 
         End If
-        
+
         Dim Parent As TreeNode = New TreeNode(device.FriendlyName, 1, 1)
         Parent.Tag = device
         Parent.Name = device.UniqueDeviceName
@@ -340,22 +342,86 @@ Module modUtils
     End Function
 
 
+#Region "IP Utilities"
+    Public Function GetValidIPAddresses() As Collection
+        Dim ipadds As New Collection
+        For Each networkCard As NetworkInterface In NetworkInterface.GetAllNetworkInterfaces
+            ' Find network cards with gateway information (this may show more than one network card depending on computer)
+            For Each gatewayAddr As GatewayIPAddressInformation In networkCard.GetIPProperties.GatewayAddresses
+                ' if gateway address is NOT 0.0.0.0 and the network card status is UP then we've found the main network card
+                If gatewayAddr.Address.ToString <> "0.0.0.0" And networkCard.OperationalStatus.ToString() = "Up" Then
+                    ' Get IP Address(es) and subnet(s) information
+                    Dim IpAddressAndSubnet As UnicastIPAddressInformation
+                    For Each IpAddressAndSubnet In networkCard.GetIPProperties.UnicastAddresses
+                        If Not ipadds.Contains(IpAddressAndSubnet.Address.ToString) Then
+                            ipadds.Add(IpAddressAndSubnet.Address, IpAddressAndSubnet.Address.ToString)
+                        End If
+                    Next
+                End If
+            Next
+        Next
+        Return ipadds
+    End Function
 
+    Private Function GetPrimaryNic()
+        ' DESCRIPTION: this function  will provide networking details for primary network card
 
-    ''// given a device and a ServiceID, go find another device with the same ipaddress that has the target ServiceID in its tree.
-    'Public Function FindSiblingDevice(device As UPnPDevice, targetServiceID As String) As UPnPDevice
-    '    For Each targetDevice As UPnPDevice In AvailableDevices
-    '        If targetDevice.RemoteEndPoint.ToString = device.RemoteEndPoint.ToString Then
-    '            If targetDevice.UniqueDeviceName <> device.UniqueDeviceName Then
-    '                If CheckForService(targetDevice, targetServiceID) Then
-    '                    Return targetDevice
-    '                    Exit For
-    '                Else
-    '                    '// we've found ourself! skip to next.
-    '                End If
-    '            End If
-    '        End If
-    '    Next
-    '    Return Nothing
-    'End Function
+        Dim PrimaryNic As New Collection
+
+        For Each networkCard As NetworkInterface In NetworkInterface.GetAllNetworkInterfaces
+
+            ' Find network cards with gateway information (this may show more than one network card depending on computer)
+            For Each gatewayAddr As GatewayIPAddressInformation In networkCard.GetIPProperties.GatewayAddresses
+
+                ' if gateway address is NOT 0.0.0.0 and the network card status is UP then we've found the main network card
+                If gatewayAddr.Address.ToString <> "0.0.0.0" And networkCard.OperationalStatus.ToString() = "Up" Then
+                    PrimaryNic.Add("Interface GUID: " & networkCard.Id)
+                    PrimaryNic.Add("Name:".PadRight(15) & networkCard.Name)
+                    PrimaryNic.Add("Description:".PadRight(15) & networkCard.Description)
+                    PrimaryNic.Add("Status:".PadRight(15) & networkCard.OperationalStatus.ToString)
+                    PrimaryNic.Add("Status:".PadRight(15) & (networkCard.Speed / 1000000).ToString("#,000") & " Mbps")
+                    PrimaryNic.Add("MAC Address:".PadRight(15) & networkCard.GetPhysicalAddress.ToString)
+
+                    ' Get IP Address(es) and subnet(s) information
+                    Dim IpAddressAndSubnet As UnicastIPAddressInformation
+
+                    For Each IpAddressAndSubnet In networkCard.GetIPProperties.UnicastAddresses
+                        PrimaryNic.Add("IP Address:".PadRight(15) & IpAddressAndSubnet.Address.ToString)
+                        PrimaryNic.Add("Subnet:".PadRight(15) & IpAddressAndSubnet.IPv4Mask.ToString)
+                    Next
+
+                    ' Get IP gateway information
+                    PrimaryNic.Add("Gateway:".PadRight(15) & gatewayAddr.Address.ToString)
+
+                    ' Get IP DNS information
+                    Dim DnsAddress As IPAddress
+
+                    For Each DnsAddress In networkCard.GetIPProperties.DnsAddresses
+                        PrimaryNic.Add("DNS entry:".PadRight(15) & DnsAddress.ToString)
+                    Next
+
+                    ' Other IP information
+                    Dim IPProp As IPInterfaceProperties = networkCard.GetIPProperties
+
+                    If Not IPProp Is Nothing Then
+                        PrimaryNic.Add("DNS Enabled:".PadRight(15) & IPProp.IsDnsEnabled.ToString)
+                        PrimaryNic.Add("Dynamic DNS:".PadRight(15) & IPProp.IsDynamicDnsEnabled.ToString)
+                    End If
+
+                    Dim IPv4 As IPv4InterfaceProperties = networkCard.GetIPProperties.GetIPv4Properties
+
+                    If Not IPv4 Is Nothing Then
+                        PrimaryNic.Add("DHCP Enabled:".PadRight(15) & IPv4.IsDhcpEnabled.ToString)
+                        PrimaryNic.Add("MTU Setting:".PadRight(15) & IPv4.Mtu.ToString)
+                        PrimaryNic.Add("Uses WINS:".PadRight(15) & IPv4.UsesWins.ToString)
+                    End If
+
+                End If
+            Next
+        Next
+
+        Return PrimaryNic
+
+    End Function
+#End Region
 End Module
