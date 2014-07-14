@@ -343,7 +343,7 @@ Module modUtils
 
 
 #Region "IP Utilities"
-    Public Function GetValidIPAddresses() As Collection
+    Public Function GetFirstValidIPAddresses() As IPAddress
         Dim ipadds As New Collection
         For Each networkCard As NetworkInterface In NetworkInterface.GetAllNetworkInterfaces
             ' Find network cards with gateway information (this may show more than one network card depending on computer)
@@ -360,68 +360,16 @@ Module modUtils
                 End If
             Next
         Next
-        Return ipadds
-    End Function
 
-    Private Function GetPrimaryNic()
-        ' DESCRIPTION: this function  will provide networking details for primary network card
+        For Each ipAddress As IPAddress In ipadds
+            If ipAddress.AddressFamily.ToString = "InterNetwork" Then
+                Return ipAddress
 
-        Dim PrimaryNic As New Collection
-
-        For Each networkCard As NetworkInterface In NetworkInterface.GetAllNetworkInterfaces
-
-            ' Find network cards with gateway information (this may show more than one network card depending on computer)
-            For Each gatewayAddr As GatewayIPAddressInformation In networkCard.GetIPProperties.GatewayAddresses
-
-                ' if gateway address is NOT 0.0.0.0 and the network card status is UP then we've found the main network card
-                If gatewayAddr.Address.ToString <> "0.0.0.0" And networkCard.OperationalStatus.ToString() = "Up" Then
-                    PrimaryNic.Add("Interface GUID: " & networkCard.Id)
-                    PrimaryNic.Add("Name:".PadRight(15) & networkCard.Name)
-                    PrimaryNic.Add("Description:".PadRight(15) & networkCard.Description)
-                    PrimaryNic.Add("Status:".PadRight(15) & networkCard.OperationalStatus.ToString)
-                    PrimaryNic.Add("Status:".PadRight(15) & (networkCard.Speed / 1000000).ToString("#,000") & " Mbps")
-                    PrimaryNic.Add("MAC Address:".PadRight(15) & networkCard.GetPhysicalAddress.ToString)
-
-                    ' Get IP Address(es) and subnet(s) information
-                    Dim IpAddressAndSubnet As UnicastIPAddressInformation
-
-                    For Each IpAddressAndSubnet In networkCard.GetIPProperties.UnicastAddresses
-                        PrimaryNic.Add("IP Address:".PadRight(15) & IpAddressAndSubnet.Address.ToString)
-                        PrimaryNic.Add("Subnet:".PadRight(15) & IpAddressAndSubnet.IPv4Mask.ToString)
-                    Next
-
-                    ' Get IP gateway information
-                    PrimaryNic.Add("Gateway:".PadRight(15) & gatewayAddr.Address.ToString)
-
-                    ' Get IP DNS information
-                    Dim DnsAddress As IPAddress
-
-                    For Each DnsAddress In networkCard.GetIPProperties.DnsAddresses
-                        PrimaryNic.Add("DNS entry:".PadRight(15) & DnsAddress.ToString)
-                    Next
-
-                    ' Other IP information
-                    Dim IPProp As IPInterfaceProperties = networkCard.GetIPProperties
-
-                    If Not IPProp Is Nothing Then
-                        PrimaryNic.Add("DNS Enabled:".PadRight(15) & IPProp.IsDnsEnabled.ToString)
-                        PrimaryNic.Add("Dynamic DNS:".PadRight(15) & IPProp.IsDynamicDnsEnabled.ToString)
-                    End If
-
-                    Dim IPv4 As IPv4InterfaceProperties = networkCard.GetIPProperties.GetIPv4Properties
-
-                    If Not IPv4 Is Nothing Then
-                        PrimaryNic.Add("DHCP Enabled:".PadRight(15) & IPv4.IsDhcpEnabled.ToString)
-                        PrimaryNic.Add("MTU Setting:".PadRight(15) & IPv4.Mtu.ToString)
-                        PrimaryNic.Add("Uses WINS:".PadRight(15) & IPv4.UsesWins.ToString)
-                    End If
-
-                End If
-            Next
+            End If
         Next
-
-        Return PrimaryNic
-
+        Return Nothing
     End Function
+
+    
 #End Region
 End Module

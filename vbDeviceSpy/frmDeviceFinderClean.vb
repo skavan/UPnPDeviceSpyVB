@@ -20,6 +20,7 @@ Public Class frmDeviceFinderClean
     Private Const COMPLETEDEVICE = "Complete Device: "
     Private Const AVTRANSPORTDEVICE = "AV Transport Device: "
     Private Const COMPOUNDDEVICE = "Compound Device: "
+
 #Region "GUI Management"
 
     '// manage Toolstrip resizing and "spring" functionality
@@ -69,11 +70,12 @@ Public Class frmDeviceFinderClean
             Me.ManagedTree.Nodes.Add(root)
         Next
 
-        disc.Init()
+        disc.BeginNetworkScan()
         GuiResizing()
     End Sub
 
     Private Sub CleanUp()
+        disc.SaveSettings()
         disc.CleanUp()
         disc = Nothing
     End Sub
@@ -91,7 +93,7 @@ Public Class frmDeviceFinderClean
             Case discovery.eDeviceDiscoveryEvent.managedDeviceAdded
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, True})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceRemoved
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), {device, False})
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), {device, True})
         End Select
 
     End Sub
@@ -150,7 +152,7 @@ Public Class frmDeviceFinderClean
             Dim infoObject As Object = node.Tag
             If infoObject IsNot Nothing Then
                 If infoObject.[GetType]() Is GetType(UPnPDevice) Then                                                           '// if the node is a device
-                    Dim device As UPnPDevice = disc.FindTopMostDevice(infoObject)
+                    Dim device As UPnPDevice = disc.GetTopMostDevice(infoObject)
                     If tree Is deviceTree Then                                                                                  '// if its the device tree then build the Add to Managed stuff
                         If (disc.CheckForService(device, discovery.AVTRANSPORT)) And (Not (disc.isManaged(device))) Then
                             Me.ManagedDeviceMenuItem.Visible = True
@@ -161,7 +163,7 @@ Public Class frmDeviceFinderClean
                                 AddManagedDeviceMenuItem.Text = COMPLETEDEVICE & device.FriendlyName
                                 Dim transportDevice As UPnPDevice = infoObject
                                 If disc.CheckChildrenForService(transportDevice, discovery.AVTRANSPORT) Then
-                                    transportDevice = disc.FindChildDeviceWithService(transportDevice, discovery.AVTRANSPORT)
+                                    transportDevice = disc.GetChildDeviceWithService(transportDevice, discovery.AVTRANSPORT)
                                     AddCompoundDeviceMenuItem.Text = AVTRANSPORTDEVICE & transportDevice.FriendlyName
                                     AddCompoundDeviceMenuItem.Tag = transportDevice
                                     AddCompoundDeviceMenuItem.Visible = True
@@ -170,7 +172,7 @@ Public Class frmDeviceFinderClean
                                 End If
                             Else
                                 '// let's find another device in the tree with a compatable IP address and matching service
-                                Dim siblingDevice As UPnPDevice = disc.FindSiblingDevice(device, discovery.CONTENTDIRECTORY)
+                                Dim siblingDevice As UPnPDevice = disc.GetSiblingDevice(device, discovery.CONTENTDIRECTORY)
                                 If siblingDevice Is Nothing Then
                                     '// AV Transport Only
                                     AddManagedDeviceMenuItem.Text = AVTRANSPORTDEVICE & device.FriendlyName
@@ -186,10 +188,32 @@ Public Class frmDeviceFinderClean
                             AddManagedDeviceMenuItem.Tag = device
 
                         End If
+                    Else        '// set up the Remove from Managed Devices stuff. Need to find the topmost device of THIS TREE.
+                        '// this is harder than it seems - as we may have added a child (AVtransport) or a Complete or a Compound.
+                        '// in AVtransport case, we find the device with teh AVTransport and send that through.
+                        '// in all other cases we goto the top parent.
+                        Dim deviceType As discovery.eManagedDeviceType = discovery.eManagedDeviceType.completeDevice
+                        Dim selectedDevice As UPnPDevice = infoObject
+                        If selectedDevice.User IsNot Nothing Then deviceType = selectedDevice.User
+
+                        Select Case deviceType
+                            Case discovery.eManagedDeviceType.avTranportDevice
+                                selectedDevice = disc.GetChildDeviceWithService(selectedDevice, discovery.AVTRANSPORT)
+                            Case Else
+                                selectedDevice = device             '//the parent
+                        End Select
+                        Dim removalNode As TreeNode = node
+                        For l = 1 To (node.Level - 1) Step 1
+                            removalNode = removalNode.Parent
+                        Next
+                        Me.removeDeviceMenuItem.Visible = True
+                        Me.removeDeviceMenuItem.Text = String.Format("Remove '{0}' from Managed Device Collection.", removalNode.Text)
+                        Me.removeDeviceMenuItem.Tag = selectedDevice
+
                     End If
 
                     If (CType(infoObject, UPnPDevice)).ParentDevice Is Nothing Then
-                        Me.removeDeviceMenuItem.Visible = True
+                        'Me.removeDeviceMenuItem.Visible = True
                     End If
                     If (CType(infoObject, UPnPDevice)).HasPresentation Then
                         Me.presPageMenuItem.Visible = True
@@ -277,6 +301,7 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
+    '// based on user action, subscribe to the highlighted service
     Private Sub SubscribeToService(tree As TreeView)
         If tree.SelectedNode IsNot Nothing Then
             If tree.SelectedNode.Tag IsNot Nothing Then
@@ -530,4 +555,13 @@ Public Class frmDeviceFinderClean
 
 
 
+    Private Sub removeDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles removeDeviceMenuItem.Click
+        Dim menuItem As MenuItem = sender
+        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
+
+        Else
+            '// it's a remove device event!
+            disc.RemoveManagedDevice(menuItem.Tag)
+        End If
+    End Sub
 End Class

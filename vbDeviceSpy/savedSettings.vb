@@ -11,37 +11,37 @@ Public Class SavedDevice
 
     Public Property DisplayName As String
     Public Property UniqueDeviceName As String
-    Public Property IsParentDevice As Boolean
-    Public Property LinkedDeviceUDN As String
+    'Public Property IsParentDevice As Boolean
+    Public Property ManagedDeviceType As discovery.eManagedDeviceType
     Public Property LocationURL As String
+
+    Public Property LinkedDeviceUDN As String
     Public Property LinkedLocationURL As String
-    Public Property DeviceCode As String
+
+    'Public Property DeviceCode As String
     Public Property SubscribedServices As ArrayList
 
     Sub New()
     End Sub
 
-    Sub New(displayName As String, uniqueDeviceName As String, locationURL As String)
-        Init(displayName, uniqueDeviceName, False, locationURL, "")
+    Sub New(displayName As String, uniqueDeviceName As String, locationURL As String, deviceType As discovery.eManagedDeviceType)
+        Me.Init(displayName, uniqueDeviceName, locationURL, deviceType, "", "")
     End Sub
 
-    Sub New(displayName As String, uniqueDeviceName As String, isLinkedDevice As Boolean, locationURL As String, linkedLocationURL As String, deviceCode As String)
-        Me.DeviceCode = deviceCode
-        Init(displayName, uniqueDeviceName, isLinkedDevice, locationURL, linkedLocationURL)
+
+    Sub New(displayName As String, uniqueDeviceName As String, locationURL As String, deviceType As discovery.eManagedDeviceType, linkedDeviceUDN As String, linkedLocationURL As String)
+        Me.Init(displayName, uniqueDeviceName, locationURL, deviceType, linkedDeviceUDN, linkedLocationURL)
+
     End Sub
 
-    Sub New(displayName As String, uniqueDeviceName As String, isLinkedDevice As Boolean, locationURL As String, linkedLocationURL As String)
-        Init(displayName, uniqueDeviceName, isLinkedDevice, locationURL, linkedLocationURL)
-    End Sub
-
-    Sub Init(displayName As String, uniqueDeviceName As String, isLinkedDevice As Boolean, locationURL As String, linkedLocationURL As String)
+    Sub Init(displayName As String, uniqueDeviceName As String, locationURL As String, deviceType As discovery.eManagedDeviceType, linkedDeviceUDN As String, linkedLocationURL As String)
         Me.DisplayName = displayName
         Me.UniqueDeviceName = uniqueDeviceName
-        Me.IsParentDevice = isLinkedDevice
+        Me.ManagedDeviceType = deviceType
         Me.LocationURL = locationURL
-        Me.LinkedLocationURL = linkedLocationURL
+        Me.LinkedDeviceUDN = LinkedDeviceUDN
+        Me.LinkedLocationURL = LinkedLocationURL
     End Sub
-
 
     'Private Sub Init(displayName As String, uniqueDeviceName As String, isLinkedDevice As Boolean, linkedDevice As String)
     '    Me.DisplayName = displayName
