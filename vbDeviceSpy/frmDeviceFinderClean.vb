@@ -4,7 +4,7 @@ Public Class frmDeviceFinderClean
 
     Public Delegate Sub UpdateTreeDelegate(device As UPnPDevice, node As TreeNode)
     Public Delegate Sub DeviceChangeHandler(device As UPnPDevice, isManagedTree As Boolean)
-    Public Delegate Sub ServiceSubscribedHandler(device As UPnPDevice, service As UPnPService)
+    Public Delegate Sub ServiceSubscribedHandler(device As UPnPDevice, service As UPnPService, bUnsubscribe As Boolean)
     Public Delegate Sub ServiceDataChangedHandler(service As UPnPService, sender As UPnPStateVariable, data As Object)
     Public WithEvents disc As New discovery
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
@@ -105,10 +105,12 @@ Public Class frmDeviceFinderClean
         Select Case serviceChangeEvent
             Case discovery.eServiceSubscriptionEvent.serviceOnSubscribe
                 Debug.Print("service subscribed:" & service.ServiceURN)
-                UpdateSubscribedService(device, service)
+                MyBase.Invoke(New ServiceSubscribedHandler(AddressOf UpdateSubscribedService), {device, service, False})
+                'UpdateSubscribedService(device, service)
             Case discovery.eServiceSubscriptionEvent.serviceOnUnsubscribe
                 Debug.Print("service UNSUBSCRIBED:" & service.ServiceURN)
-                UpdateSubscribedService(device, service, True)
+                'UpdateSubscribedService(device, service, True)
+                MyBase.Invoke(New ServiceSubscribedHandler(AddressOf UpdateSubscribedService), {device, service, True})
         End Select
 
 
@@ -366,7 +368,7 @@ Public Class frmDeviceFinderClean
                 For Each sNode As TreeNode In sNodes
                     If sNode.Tag Is service Then
                         '// EUREKA - WE HAVE FOUND THE NODE.
-                        HighlightSubscribedNode(sNode, bUnsubscribe)
+                        HighlightSubscribedNode(sNode, Not bUnsubscribe)
                     End If
                 Next
             End If
