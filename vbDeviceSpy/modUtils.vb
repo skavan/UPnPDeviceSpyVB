@@ -14,10 +14,12 @@ Module modUtils
         
         Dim Parent As TreeNode = New TreeNode(device.FriendlyName, 1, 1)
         Parent.Tag = device
+        Parent.Name = device.UniqueDeviceName
 
         For cid As Integer = 0 To device.Services.Length - 1
             Dim Child As TreeNode = New TreeNode(device.Services(cid).ServiceURN, 2, 2)
             Child.Tag = device.Services(cid)
+            Child.Name = device.Services(cid).ServiceID
             Dim stateVarNode As TreeNode = New TreeNode("State variables", 6, 6)
             Child.Nodes.Add(stateVarNode)
             Dim varList As UPnPStateVariable() = device.Services(cid).GetStateVariables()
@@ -61,6 +63,7 @@ Module modUtils
         For cid As Integer = 0 To device.EmbeddedDevices.Length - 1
             Dim Child As TreeNode = ProcessEmbeddedDevice(device.EmbeddedDevices(cid))
             Child.Tag = device.EmbeddedDevices(cid)
+            Child.Name = device.EmbeddedDevices(cid).UniqueDeviceName
             Parent.Nodes.Add(Child)
         Next
         Return Parent
@@ -70,9 +73,13 @@ Module modUtils
         Dim TempList As SortedList = New SortedList()
         Dim Parent As TreeNode = New TreeNode(device.FriendlyName, 1, 1)
         Parent.Tag = device
+        Parent.Name = device.UniqueDeviceName
+
         For cid As Integer = 0 To device.Services.Length - 1
             Dim Child As TreeNode = New TreeNode(device.Services(cid).ServiceURN, 2, 2)
             Child.Tag = device.Services(cid)
+            Child.Name = device.Services(cid).ServiceID
+
             Dim stateVarNode As TreeNode = New TreeNode("State variables", 6, 6)
             Child.Nodes.Add(stateVarNode)
             Dim varList As UPnPStateVariable() = device.Services(cid).GetStateVariables()
@@ -116,6 +123,7 @@ Module modUtils
         For cid As Integer = 0 To device.EmbeddedDevices.Length - 1
             Dim Child As TreeNode = ProcessEmbeddedDevice(device.EmbeddedDevices(cid))
             Child.Tag = device.EmbeddedDevices(cid)
+            Child.Name = device.EmbeddedDevices(cid).UniqueDeviceName
             Parent.Nodes.Add(Child)
         Next
         Return Parent
@@ -330,6 +338,9 @@ Module modUtils
             Return ManagedRootNodes(exception)
         End If
     End Function
+
+
+
 
     ''// given a device and a ServiceID, go find another device with the same ipaddress that has the target ServiceID in its tree.
     'Public Function FindSiblingDevice(device As UPnPDevice, targetServiceID As String) As UPnPDevice

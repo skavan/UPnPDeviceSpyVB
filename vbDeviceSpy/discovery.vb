@@ -130,6 +130,8 @@ Public Class discovery
 
     '// triggered when we unsubscribe from a service.
     Protected Sub HandleOnServiceUnSubscribe(sender As UPnPService)
+        RemoveHandler sender.OnSubscriptionRemoved, New UPnPService.OnSubscriptionHandler(AddressOf Me.HandleOnServiceUnSubscribe)
+        RemoveHandler sender.OnSubscribe, New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleOnServiceSubscribe)
         RaiseEvent serviceSubscriptionEvent(sender.ParentDevice, sender, eServiceSubscriptionEvent.serviceOnUnsubscribe)
     End Sub
 
@@ -157,8 +159,7 @@ Public Class discovery
     End Sub
 
     Public Sub UnSubscribe(service As UPnPService)
-        RemoveHandler service.OnSubscribe, New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleOnServiceSubscribe)
-        RemoveHandler service.OnSubscriptionRemoved, New UPnPService.OnSubscriptionHandler(AddressOf Me.HandleOnServiceUnSubscribe)
+ 
 
         Dim stateVariables As UPnPStateVariable() = (CType(service, UPnPService)).GetStateVariables()
         For i As Integer = 0 To stateVariables.Length - 1
@@ -168,6 +169,10 @@ Public Class discovery
             End If
         Next
         service.UnSubscribe(Nothing)
+        'Threading.Thread.Sleep(250)
+
+
+
     End Sub
 
 #End Region

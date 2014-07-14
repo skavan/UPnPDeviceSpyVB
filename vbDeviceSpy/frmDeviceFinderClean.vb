@@ -102,7 +102,16 @@ Public Class frmDeviceFinderClean
     End Sub
 
     Private Sub disc_serviceSubscriptionEvent(device As UPnPDevice, service As UPnPService, serviceChangeEvent As discovery.eServiceSubscriptionEvent) Handles disc.serviceSubscriptionEvent
-        Debug.Print("service subscribed:" & service.ServiceURN)
+        Select Case serviceChangeEvent
+            Case discovery.eServiceSubscriptionEvent.serviceOnSubscribe
+                Debug.Print("service subscribed:" & service.ServiceURN)
+                UpdateSubscribedService(device, service)
+            Case discovery.eServiceSubscriptionEvent.serviceOnUnsubscribe
+                Debug.Print("service UNSUBSCRIBED:" & service.ServiceURN)
+                UpdateSubscribedService(device, service, True)
+        End Select
+
+
     End Sub
 
 #End Region
@@ -209,7 +218,7 @@ Public Class frmDeviceFinderClean
     Private Sub deviceTree_MouseDown(sender As Object, e As MouseEventArgs) Handles deviceTree.MouseDown
         ResetPopupMenuItems()
         ProcessNodePopupMenu(deviceTree, e)
-        
+
     End Sub
 
     Private Sub AddManagedDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles AddManagedDeviceMenuItem.Click
@@ -273,19 +282,10 @@ Public Class frmDeviceFinderClean
                 If obj.[GetType]() Is GetType(UPnPService) Then
                     Dim service As UPnPService = DirectCast(obj, UPnPService)
                     If Not tree.SelectedNode.Checked Then
-                        Me.splitter2.Visible = True
-                        Me.eventListView.Visible = True
-                        Me.menuItem3.Checked = True
-                        tree.SelectedNode.ImageIndex = 3
-                        tree.SelectedNode.SelectedImageIndex = 3
-                        tree.SelectedNode.Checked = True
-                        tree.SelectedNode.ForeColor = Color.Red
+                        HighlightSubscribedNode(tree.SelectedNode, True)
                         disc.Subscribe(service)
                     Else
-                        tree.SelectedNode.ImageIndex = 2
-                        tree.SelectedNode.SelectedImageIndex = 2
-                        tree.SelectedNode.Checked = False
-                        tree.SelectedNode.ForeColor = Color.Black
+                        HighlightSubscribedNode(tree.SelectedNode, False)
                         disc.UnSubscribe(service)
                     End If
                 End If
@@ -311,7 +311,66 @@ Public Class frmDeviceFinderClean
             ExpandNode(ManagedTree)
         End If
 
-        
+
+    End Sub
+
+
+    '//collapse tree
+    Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
+        Dim menuItem As MenuItem = sender
+        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
+            CollapseNode(deviceTree)
+        Else
+
+            CollapseNode(ManagedTree)
+        End If
+    End Sub
+#End Region
+
+#Region "Tree and ListInfo Routines"
+
+    Private Sub HighlightSubscribedNode(node As TreeNode, bHighlight As Boolean)
+        If bHighlight Then
+            Me.splitter2.Visible = True
+            Me.eventListView.Visible = True
+            Me.menuItem3.Checked = True
+            node.ImageIndex = 3
+            node.SelectedImageIndex = 3
+            node.Checked = True
+            node.ForeColor = Color.Yellow
+            node.BackColor = Color.Red
+        Else
+            node.ImageIndex = 2
+            node.SelectedImageIndex = 2
+            node.Checked = False
+            node.ForeColor = Color.Black
+            node.BackColor = Color.White
+
+        End If
+    End Sub
+
+    Private Sub UpdateSubscribedService(device As UPnPDevice, service As UPnPService, Optional bUnsubscribe As Boolean = False)
+        Dim nodes As TreeNode()
+        nodes = deviceTree.Nodes.Find(device.UniqueDeviceName, True)
+        HighlightNode(device, service, nodes, bUnsubscribe)
+
+        nodes = ManagedTree.Nodes.Find(device.UniqueDeviceName, True)
+        HighlightNode(device, service, nodes, bUnsubscribe)
+    End Sub
+
+    Private Sub HighlightNode(device As UPnPDevice, service As UPnPService, nodes As TreeNode(), Optional bUnsubscribe As Boolean = False)
+        For Each node As TreeNode In nodes
+            If node.Tag Is device Then
+                Debug.Print("FOUND DEVICE")
+                Dim sNodes As TreeNode() = node.Nodes.Find(service.ServiceID, True)
+                For Each sNode As TreeNode In sNodes
+                    If sNode.Tag Is service Then
+                        '// EUREKA - WE HAVE FOUND THE NODE.
+                        HighlightSubscribedNode(sNode, bUnsubscribe)
+                    End If
+                Next
+            End If
+        Next
     End Sub
 
     '// Private routine to do the work
@@ -341,22 +400,6 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
-    '//collapse tree
-    Private Sub collapseAllMenuItem2_Click(sender As Object, e As EventArgs) Handles collapseAllMenuItem2.Click
-        Dim menuItem As MenuItem = sender
-        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
-            CollapseNode(deviceTree)
-        Else
-
-            CollapseNode(ManagedTree)
-        End If
-    End Sub
-#End Region
-
-#Region "Tree and ListInfo Routines"
-    Private Sub UpdateSubscribedService(device As UPnPDevice, service As UPnPService)
-
-    End Sub
     Protected Sub AddDeviceToTree(device As UPnPDevice, isManagedTree As Boolean)
         Dim parentNode As TreeNode
         If isManagedTree Then
