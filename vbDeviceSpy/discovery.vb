@@ -120,6 +120,7 @@ Public Class discovery
 
     '// triggered when we try and subscribe to a service.
     Protected Sub HandleOnServiceSubscribe(sender As UPnPService, success As Boolean)
+        Debug.Print("SUBSCRIBED " & sender.ServiceURN)
         If success Then
             RaiseEvent serviceSubscriptionEvent(sender.ParentDevice, sender, eServiceSubscriptionEvent.serviceOnSubscribe)
         Else
@@ -130,8 +131,11 @@ Public Class discovery
 
     '// triggered when we unsubscribe from a service.
     Protected Sub HandleOnServiceUnSubscribe(sender As UPnPService)
-        RemoveHandler sender.OnSubscriptionRemoved, New UPnPService.OnSubscriptionHandler(AddressOf Me.HandleOnServiceUnSubscribe)
-        RemoveHandler sender.OnSubscribe, New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleOnServiceSubscribe)
+        RaiseEvent serviceSubscriptionEvent(sender.ParentDevice, sender, eServiceSubscriptionEvent.serviceOnUnsubscribe)
+    End Sub
+
+    Protected Sub OnUnsubscribe(sender As UPnPService, seq As Long)
+        Debug.Print("UNSUBSCRIBED " & sender.ServiceURN)
         RaiseEvent serviceSubscriptionEvent(sender.ParentDevice, sender, eServiceSubscriptionEvent.serviceOnUnsubscribe)
     End Sub
 
@@ -168,9 +172,13 @@ Public Class discovery
                 RemoveHandler V.OnModified, New UPnPStateVariable.ModifiedHandler(AddressOf Me.HandleEvents)
             End If
         Next
+        RemoveHandler service.OnSubscriptionRemoved, New UPnPService.OnSubscriptionHandler(AddressOf Me.HandleOnServiceUnSubscribe)
+        RemoveHandler service.OnSubscribe, New UPnPService.UPnPEventSubscribeHandler(AddressOf Me.HandleOnServiceSubscribe)
+
+        'AddHandler service.OnSubscriptionRemoved, New UPnPService.OnSubscriptionHandler(AddressOf Me.HandleOnServiceUnSubscribe)
         service.UnSubscribe(Nothing)
         'Threading.Thread.Sleep(250)
-
+        RaiseEvent serviceSubscriptionEvent(service.ParentDevice, service, eServiceSubscriptionEvent.serviceOnUnsubscribe)
 
 
     End Sub
