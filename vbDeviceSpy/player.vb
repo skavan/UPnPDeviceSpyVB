@@ -14,17 +14,20 @@ End Enum
 
 Public Class Player
 
-    Private m_device As UPnPDevice
     Private m_mediaRenderer As UPnPDevice
     Private m_avTransport As UPnPService
     Private m_mediaServer As UPnPDevice
     Private m_renderingControl As UPnPService
     Private m_contentDirectory As UPnPService
     Private m_currentState As New PlayerState
+    Private m_playerInfo As New PlayerInfo
+    Private m_mediaInfo As New MediaInfo
+
+
+    Private m_currentTrack As New TrackInfo
+    Private m_nextTrack As New TrackInfo
+    Private m_prevTrack As New TrackInfo
     Private positionTimer As Timer
-    Private m_Name As String
-    Private m_UUID As String
-    Private m_ControlPoint As UPnPSmartControlPoint
 
     Public Event StateChanged As Action(Of Player)
 
@@ -54,9 +57,9 @@ Public Class Player
 
     Private Sub ChangeTriggered(sender As UPnPStateVariable, value As Object)
         'Console.WriteLine("LastChange from {0}", UUID);
-        Dim newState = sender.Value
+        Dim newState As String = sender.Value
         'Console.WriteLine(newState);
-        ParseChangeXML(DirectCast(newState, String))
+        ParseChangeXML(newState)
     End Sub
 
 #End Region
@@ -82,12 +85,39 @@ Public Class Player
             .NextTrackMetaData = instance.Element(r + "NextTrackMetaData").Attribute("val").Value _
         }
 
+
+
         m_currentState = preliminaryState
 
         ' every time we have got a state change, do a PositionInfo
         Try
-            Dim positionInfo = GetPositionInfo()
-            CurrentState.RelTime = positionInfo.RelTime
+            m_playerInfo = GetPositionInfo()
+            CurrentState.RelTime = m_playerInfo.RelTime
+
+            '// if the track has changed - push the current track into the prior slot.
+            Dim tempTrack As TrackInfo = TrackInfo.Parse(m_playerInfo.TrackMetaData)
+            
+            If m_currentTrack.MetaData IsNot Nothing Then
+                If tempTrack.MetaData <> m_currentTrack.MetaData Then
+
+                    '// new track.
+                    m_prevTrack = m_currentTrack
+                    m_currentTrack = tempTrack
+                End If
+            Else
+                m_currentTrack = tempTrack
+            End If
+            '// the next track info comes in the preliminarystate data
+            m_nextTrack = TrackInfo.Parse(m_currentState.NextTrackMetaData)
+
+            '// now get the # tracks
+            m_mediaInfo = GetMediaInfo()
+            '// and fill them in.
+            m_currentTrack.TrackCount = m_mediaInfo.NrOfTracks
+            m_nextTrack.TrackCount = m_mediaInfo.NrOfTracks
+            m_prevTrack.TrackCount = m_mediaInfo.NrOfTracks
+
+
             ' void
         Catch generatedExceptionName As Exception
         End Try
@@ -108,42 +138,9 @@ Public Class Player
 #Region "public properties"
 
     Public Property Name() As String
-        Get
-            Return m_Name
-        End Get
-        Set(value As String)
-            m_Name = value
-        End Set
-    End Property
-
     Public Property UUID() As String
-        Get
-            Return m_UUID
-        End Get
-        Set(value As String)
-            m_UUID = value
-        End Set
-    End Property
-
-
     Public Property ControlPoint() As UPnPSmartControlPoint
-        Get
-            Return m_ControlPoint
-        End Get
-        Set(value As UPnPSmartControlPoint)
-            m_ControlPoint = value
-        End Set
-    End Property
-
-
     Public Property Device() As UPnPDevice
-        Get
-            Return m_device
-        End Get
-        Set(value As UPnPDevice)
-            m_device = value
-        End Set
-    End Property
 
     Public ReadOnly Property MediaRenderer() As UPnPDevice
         Get
@@ -230,21 +227,31 @@ Public Class Player
 
     Public ReadOnly Property PlayerInfo() As PlayerInfo
         Get
-            Return GetPositionInfo()
+            Return m_playerInfo
         End Get
     End Property
 
     Public ReadOnly Property MediaInfo() As MediaInfo
         Get
-            Return GetMediaInfo()
+            Return m_mediaInfo
         End Get
     End Property
 
-    Public ReadOnly Property CurrentTrack() As TrackHolder
+    Public ReadOnly Property PrevTrack As TrackInfo
         Get
+            Return m_prevTrack
+        End Get
+    End Property
 
-            'Throw New NotImplementedException()
-            'Return
+    Public ReadOnly Property CurrentTrack As TrackInfo
+        Get
+            Return m_currentTrack
+        End Get
+    End Property
+
+    Public ReadOnly Property NextTrack As TrackInfo
+        Get
+            Return m_nextTrack
         End Get
     End Property
 
@@ -255,7 +262,6 @@ Public Class Player
     End Property
 
 #End Region
-
 
 
     Public Sub StartPolling()
@@ -514,166 +520,33 @@ End Class
 
 Public Class SearchResult
     Public Property Result() As String
-        Get
-            Return m_Result
-        End Get
-        Set(value As String)
-            m_Result = value
-        End Set
-    End Property
-    Private m_Result As String
     Public Property StartingIndex() As UInteger
-        Get
-            Return m_StartingIndex
-        End Get
-        Set(value As UInteger)
-            m_StartingIndex = value
-        End Set
-    End Property
-    Private m_StartingIndex As UInteger
     Public Property NumberReturned() As UInteger
-        Get
-            Return m_NumberReturned
-        End Get
-        Set(value As UInteger)
-            m_NumberReturned = value
-        End Set
-    End Property
-    Private m_NumberReturned As UInteger
     Public Property TotalMatches() As UInteger
-        Get
-            Return m_TotalMatches
-        End Get
-        Set(value As UInteger)
-            m_TotalMatches = value
-        End Set
-    End Property
-    Private m_TotalMatches As UInteger
 End Class
 
 Public Class PlayerState
     Public Property TransportState() As String
-        Get
-            Return m_TransportState
-        End Get
-        Set(value As String)
-            m_TransportState = value
-        End Set
-    End Property
-    Private m_TransportState As String
     Public Property NumberOfTracks() As String
-        Get
-            Return m_NumberOfTracks
-        End Get
-        Set(value As String)
-            m_NumberOfTracks = value
-        End Set
-    End Property
-    Private m_NumberOfTracks As String
     Public Property CurrentTrack() As String
-        Get
-            Return m_CurrentTrack
-        End Get
-        Set(value As String)
-            m_CurrentTrack = value
-        End Set
-    End Property
-    Private m_CurrentTrack As String
     Public Property CurrentTrackDuration() As TimeSpan
-        Get
-            Return m_CurrentTrackDuration
-        End Get
-        Set(value As TimeSpan)
-            m_CurrentTrackDuration = value
-        End Set
-    End Property
-    Private m_CurrentTrackDuration As TimeSpan
     Public Property CurrentTrackMetaData() As String
-        Get
-            Return m_CurrentTrackMetaData
-        End Get
-        Set(value As String)
-            m_CurrentTrackMetaData = value
-        End Set
-    End Property
-    Private m_CurrentTrackMetaData As String
     Public Property LastStateChange() As DateTime
-        Get
-            Return m_LastStateChange
-        End Get
-        Set(value As DateTime)
-            m_LastStateChange = value
-        End Set
-    End Property
-    Private m_LastStateChange As DateTime
     Public Property RelTime() As TimeSpan
-        Get
-            Return m_RelTime
-        End Get
-        Set(value As TimeSpan)
-            m_RelTime = value
-        End Set
-    End Property
-    Private m_RelTime As TimeSpan
     Public Property NextTrackMetaData() As String
-        Get
-            Return m_NextTrackMetaData
-        End Get
-        Set(value As String)
-            m_NextTrackMetaData = value
-        End Set
-    End Property
-    Private m_NextTrackMetaData As String
+  
 End Class
 
 Public Class TrackHolder
     Public Property Uri() As String
-        Get
-            Return m_Uri
-        End Get
-        Set(value As String)
-            m_Uri = value
-        End Set
-    End Property
-
-    Private m_Uri As String
-
     Public Property MetaData() As String
-        Get
-            Return m_MetaData
-        End Get
-        Set(value As String)
-            m_MetaData = value
-        End Set
-    End Property
-
-    Private m_MetaData As String
 End Class
 
 Public Class SonosItem
-    Private m_DIDL As SonosDIDL
-    Private m_Track As TrackHolder
 
     Public Overridable Property Track() As TrackHolder
-        Get
-            Return m_Track
-        End Get
-        Set(value As TrackHolder)
-            m_Track = value
-        End Set
-    End Property
-
     Public Overridable Property DIDL() As SonosDIDL
-        Get
-            Return m_DIDL
-        End Get
-        Set(value As SonosDIDL)
-            m_DIDL = value
-        End Set
-    End Property
-
-
-
+        
     Public Shared Function Parse(xmlString As String) As IList(Of SonosItem)
         Dim xml = XElement.Parse(xmlString)
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
@@ -762,66 +635,13 @@ End Class
 
 Public Class SonosDIDL
     
-    Private m_AlbumArtURI As String
-    Private m_Title As String
-    Private m_Artist As String
-    Private m_Album As String
-    Private m_Uri As String
-    Private m_Description As String
-
     Public Property AlbumArtURI() As String
-        Get
-            Return m_AlbumArtURI
-        End Get
-        Set(value As String)
-            m_AlbumArtURI = value
-        End Set
-    End Property
-
     Public Property Title() As String
-        Get
-            Return m_Title
-        End Get
-        Set(value As String)
-            m_Title = value
-        End Set
-    End Property
-
     Public Property Artist() As String
-        Get
-            Return m_Artist
-        End Get
-        Set(value As String)
-            m_Artist = value
-        End Set
-    End Property
-
     Public Property Album() As String
-        Get
-            Return m_Album
-        End Get
-        Set(value As String)
-            m_Album = value
-        End Set
-    End Property
-
     Public Property Uri() As String
-        Get
-            Return m_Uri
-        End Get
-        Set(value As String)
-            m_Uri = value
-        End Set
-    End Property
-
     Public Property Description() As String
-        Get
-            Return m_Description
-        End Get
-        Set(value As String)
-            m_Description = value
-        End Set
-    End Property
+
 
     Public Shared Function Parse(xml As String) As IList(Of SonosDIDL)
         Dim didl = XElement.Parse(xml)
@@ -853,109 +673,21 @@ End Class
 
 Public Class TrackInfo
 
-    Private m_AlbumArtURI As String
-    Private m_Title As String
-    Private m_Artist As String
-    Private m_Album As String
-    Private m_Uri As String
-    Private m_Description As String
-    Private m_AlbumArtist As String
-    Private m_TrackNumber As String
-    Private m_class As String
-    Private m_StreamContent As String
-
-
-
     Public Property AlbumArtURI() As String
-        Get
-            Return m_AlbumArtURI
-        End Get
-        Set(value As String)
-            m_AlbumArtURI = value
-        End Set
-    End Property
-
     Public Property AlbumArtist As String
-        Get
-            Return m_AlbumArtist
-        End Get
-        Set(ByVal value As String)
-            m_AlbumArtist = value
-        End Set
-    End Property
-
     Public Property ItemClass As String
-        Get
-            Return m_class
-        End Get
-        Set(ByVal value As String)
-            m_class = value
-        End Set
-    End Property
-
     Public Property StreamContent As String
-        Get
-            Return m_StreamContent
-        End Get
-        Set(ByVal value As String)
-            m_StreamContent = value
-        End Set
-    End Property
-
+    Public Property FileURL As String
     Public Property TrackNumber As String
-        Get
-            Return m_TrackNumber
-        End Get
-        Set(ByVal value As String)
-            m_TrackNumber = value
-        End Set
-    End Property
-
+    Public Property TrackCount As String
     Public Property Title() As String
-        Get
-            Return m_Title
-        End Get
-        Set(value As String)
-            m_Title = value
-        End Set
-    End Property
-
     Public Property Artist() As String
-        Get
-            Return m_Artist
-        End Get
-        Set(value As String)
-            m_Artist = value
-        End Set
-    End Property
-
     Public Property Album() As String
-        Get
-            Return m_Album
-        End Get
-        Set(value As String)
-            m_Album = value
-        End Set
-    End Property
-
     Public Property Uri() As String
-        Get
-            Return m_Uri
-        End Get
-        Set(value As String)
-            m_Uri = value
-        End Set
-    End Property
-
     Public Property Description() As String
-        Get
-            Return m_Description
-        End Get
-        Set(value As String)
-            m_Description = value
-        End Set
-    End Property
+    Public Property MetaData As String
 
+       
     Public Shared Function Parse(xml As String) As TrackInfo
         Dim didl = XElement.Parse(xml)
         Return Parse(didl)
@@ -981,6 +713,7 @@ Public Class TrackInfo
             response.TrackNumber = item.Element(upnp + "originalTrackNumber").Value
             response.ItemClass = item.Element(upnp + "class").Value
             response.StreamContent = item.Element(r + "streamContent").Value
+            response.MetaData = didl.ToString
         Next
 
         Return response

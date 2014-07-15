@@ -618,4 +618,9 @@ Public Class frmDeviceFinderClean
     Private Sub UpdatePlayerInfo(obj As Player)
         propGrid1.SelectedObject = obj
     End Sub
+
+    Private Sub propGrid1_Click(sender As Object, e As EventArgs) Handles propGrid1.Click
+        Dim item As Object = propGrid1.SelectedGridItem
+        propGrid2.SelectedObject = item
+    End Sub
 End Class
