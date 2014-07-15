@@ -193,6 +193,7 @@ Public Class discovery
     '// as devices arrive, put them in the managed device Array if we have all the required devices
     Private Sub AutoLoadManagedDevice(device As UPnPDevice)
         Dim savedDevices As SavedDevices = My.Settings.SavedDevices
+        If savedDevices Is Nothing Then Exit Sub
         For Each savedDevice As SavedDevice In savedDevices
             If savedDevice.UniqueDeviceName = device.UniqueDeviceName Then
                 '// we have found a device to auto manage

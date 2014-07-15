@@ -30,6 +30,8 @@ Public Class Player
 
 
     Private Sub SubscribeToEvents()
+
+        If AVTransport Is Nothing Then Exit Sub
         AVTransport.Subscribe(600, AddressOf HandleOnServiceSubscribe)
     End Sub
 
@@ -237,7 +239,9 @@ Public Class Player
 
     Public ReadOnly Property CurrentTrack() As Track
         Get
-            Throw New NotImplementedException()
+
+            'Throw New NotImplementedException()
+            'Return
         End Get
     End Property
 

@@ -6,7 +6,10 @@ Public Class frmDeviceFinderClean
     Public Delegate Sub DeviceChangeHandler(device As UPnPDevice, isManagedTree As Boolean)
     Public Delegate Sub ServiceSubscribedHandler(device As UPnPDevice, service As UPnPService, bUnsubscribe As Boolean)
     Public Delegate Sub ServiceDataChangedHandler(service As UPnPService, sender As UPnPStateVariable, data As Object)
+    Public Delegate Sub PlayerStateChangeHandler(player As Player)
+
     Public WithEvents disc As New discovery
+    Public WithEvents player As New Player
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
 
     Private SubscribedList As New ArrayList
@@ -149,7 +152,7 @@ Public Class frmDeviceFinderClean
         Me.AddCompoundDeviceMenuItem.Visible = False
 
         Me.ServiceXMLmenuItem.Visible = False
-        Me.ValidateActionMenuItem.Visible = False
+        Me.ActivatePlayerMenu.Visible = False
         Me.removeDeviceMenuItem.Visible = False
     End Sub
 
@@ -212,14 +215,17 @@ Public Class frmDeviceFinderClean
                             Case Else
                                 selectedDevice = device             '//the parent
                         End Select
-                        Dim removalNode As TreeNode = node
+                        Dim topmostNode As TreeNode = node
                         For l = 1 To (node.Level - 1) Step 1
-                            removalNode = removalNode.Parent
+                            topmostNode = topmostNode.Parent
                         Next
                         Me.removeDeviceMenuItem.Visible = True
-                        Me.removeDeviceMenuItem.Text = String.Format("Remove '{0}' from Managed Device Collection.", removalNode.Text)
+                        Me.removeDeviceMenuItem.Text = String.Format("Remove '{0}' from Managed Device Collection.", topmostNode.Text)
                         Me.removeDeviceMenuItem.Tag = selectedDevice
 
+                        Me.ActivatePlayerMenu.Visible = True
+                        Me.ActivatePlayerMenu.Text = String.Format("Activate Player {{{0}}}", disc.GetTopMostDevice(selectedDevice).FriendlyName)
+                        Me.ActivatePlayerMenu.Tag = disc.GetTopMostDevice(selectedDevice)
                     End If
 
                     If (CType(infoObject, UPnPDevice)).ParentDevice Is Nothing Then
@@ -236,7 +242,7 @@ Public Class frmDeviceFinderClean
                 End If
 
                 If infoObject.[GetType]() Is GetType(UPnPService) Then
-                    Me.ValidateActionMenuItem.Visible = True
+                    Me.ActivatePlayerMenu.Visible = True
                     Me.eventSubscribeMenuItem.Visible = True
                     Me.ServiceXMLmenuItem.Visible = True
                     Me.menuItem18.Visible = True
@@ -365,6 +371,42 @@ Public Class frmDeviceFinderClean
             CollapseNode(ManagedTree)
         End If
     End Sub
+
+    Private Sub removeDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles removeDeviceMenuItem.Click
+        Dim menuItem As MenuItem = sender
+        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
+
+        Else
+            '// it's a remove device event!
+            disc.RemoveManagedDevice(menuItem.Tag)
+        End If
+    End Sub
+
+    Private Sub tabManaged_Selected(sender As Object, e As EventArgs) Handles tabControl1.Selected
+        Debug.Print("TAB" & tabControl1.SelectedIndex)
+        'If tabControl1.SelectedIndex = 1 Then
+        '            ElseIf tabControl1.SelectedIndex = 0 Then
+        '    '            ManagedTree = TreeView1
+        'End If
+        Select Case tabControl1.SelectedIndex
+            Case 0
+                splitter3.Panel2.Controls.Add(ManagedTree)
+                'ManagedTree.Dock = DockStyle.Fill
+                ManagedTree.BringToFront()
+            Case 1
+                SplitContainer1.Panel1.Controls.Add(ManagedTree)
+                'ManagedTree.Dock = DockStyle.Fill
+                ManagedTree.BringToFront()
+        End Select
+
+    End Sub
+
+    Private Sub ActivatePlayerMenu_Click(sender As Object, e As EventArgs) Handles ActivatePlayerMenu.Click
+        Dim menuItem As MenuItem = sender
+        player.SetDevice(menuItem.Tag)
+
+    End Sub
+
 #End Region
 
 #Region "Tree and ListInfo Routines"
@@ -568,32 +610,12 @@ Public Class frmDeviceFinderClean
 
 
 
-    Private Sub removeDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles removeDeviceMenuItem.Click
-        Dim menuItem As MenuItem = sender
-        If menuItem.GetContextMenu.SourceControl Is deviceTree Then
-
-        Else
-            '// it's a remove device event!
-            disc.RemoveManagedDevice(menuItem.Tag)
-        End If
+    Private Sub player_StateChanged(obj As Player) Handles player.StateChanged
+        Debug.Print("Player State Change")
+        MyBase.Invoke(New PlayerStateChangeHandler(AddressOf UpdatePlayerInfo), obj)
     End Sub
 
-    Private Sub tabManaged_Selected(sender As Object, e As EventArgs) Handles tabControl1.Selected
-        Debug.Print("TAB" & tabControl1.SelectedIndex)
-        'If tabControl1.SelectedIndex = 1 Then
-        '            ElseIf tabControl1.SelectedIndex = 0 Then
-        '    '            ManagedTree = TreeView1
-        'End If
-        Select Case tabControl1.SelectedIndex
-            Case 0
-                splitter3.Panel2.Controls.Add(ManagedTree)
-                'ManagedTree.Dock = DockStyle.Fill
-                ManagedTree.BringToFront()
-            Case 1
-                SplitContainer1.Panel1.Controls.Add(ManagedTree)
-                'ManagedTree.Dock = DockStyle.Fill
-                ManagedTree.BringToFront()
-        End Select
-        
+    Private Sub UpdatePlayerInfo(obj As Player)
+        propGrid1.SelectedObject = obj
     End Sub
 End Class
