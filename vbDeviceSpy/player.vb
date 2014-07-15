@@ -13,6 +13,7 @@ End Enum
 
 
 Public Class Player
+
     Private m_device As UPnPDevice
     Private m_mediaRenderer As UPnPDevice
     Private m_avTransport As UPnPService
@@ -27,14 +28,21 @@ Public Class Player
 
     Public Event StateChanged As Action(Of Player)
 
-
+#Region "Initialize System"
 
     Private Sub SubscribeToEvents()
         AVTransport.Subscribe(600, AddressOf HandleOnServiceSubscribe)
     End Sub
 
-#Region "Callbacks"
+    Public Sub SetDevice(playerDevice As UPnPDevice)
+        Device = playerDevice
+        ' Subscribe to LastChange event
+        SubscribeToEvents()
+    End Sub
 
+#End Region
+    
+#Region "Callbacks"
 
     Private Sub HandleOnServiceSubscribe(sender As UPnPService, success As Boolean)
         If Not success Then Exit Sub
@@ -51,14 +59,12 @@ Public Class Player
 
 #End Region
 
-
     Private Sub ParseChangeXML(newState As String)
-        Dim xEvent = XElement.Parse(newState)
+        Dim xEvent As XElement = XElement.Parse(newState)
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/AVT/"
         Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
 
-
-        Dim instance = xEvent.Element(ns + "InstanceID")
+        Dim instance As XElement = xEvent.Element(ns + "InstanceID")
 
         ' We can receive other types of change events here.
         If instance.Element(ns + "TransportState") Is Nothing Then
@@ -88,9 +94,6 @@ Public Class Player
 
         RaiseEvent StateChanged(Me)
 
-        'If StateChanged IsNot Nothing Then
-        '    StateChanged.Invoke(Me)
-        'End If
     End Sub
 
     Private Function ParseDuration(value As String) As TimeSpan
@@ -250,14 +253,6 @@ Public Class Player
 #End Region
 
 
-    Public Sub SetDevice(playerDevice As UPnPDevice)
-        Device = playerDevice
-        ' Subscribe to LastChange event
-        SubscribeToEvents()
-
-        ' Start a timer that polls for PositionInfo
-        'StartPolling();
-    End Sub
 
     Public Sub StartPolling()
         If positionTimer IsNot Nothing Then
@@ -289,7 +284,7 @@ Public Class Player
         'End If
     End Sub
 
-#Region "AVTransport Get Various Info (playerstatus, mediainfo, positioninfo"
+#Region "AVTransport Get Info (playerstatus, mediainfo, positioninfo"
 
     Public Function GetPlayerStatus() As PlayerStatus
         If AVTransport Is Nothing Then
@@ -368,16 +363,6 @@ Public Class Player
     End Function
 #End Region
 
-
-
-    Public Sub SetAVTransportURI(track As Track)
-        Dim arguments = New UPnPArgument(2) {}
-        arguments(0) = New UPnPArgument("InstanceID", 0UI)
-        arguments(1) = New UPnPArgument("CurrentURI", track.Uri)
-        arguments(2) = New UPnPArgument("CurrentURIMetaData", track.MetaData)
-        AVTransport.InvokeAsync("SetAVTransportURI", arguments)
-    End Sub
-
 #Region "RenderingControl Actions"
 
     Public Function GetMute() As Boolean
@@ -447,6 +432,16 @@ Public Class Player
 
 #End Region
 
+#Region "Queue/Station Actions"
+
+    Public Sub SetAVTransportURI(track As Track)
+        Dim arguments = New UPnPArgument(2) {}
+        arguments(0) = New UPnPArgument("InstanceID", 0UI)
+        arguments(1) = New UPnPArgument("CurrentURI", track.Uri)
+        arguments(2) = New UPnPArgument("CurrentURIMetaData", track.MetaData)
+        AVTransport.InvokeAsync("SetAVTransportURI", arguments)
+    End Sub
+
     Public Function Enqueue(track As Track, Optional asNext As Boolean = False) As UInteger
         Dim arguments = New UPnPArgument(7) {}
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
@@ -462,11 +457,12 @@ Public Class Player
         Return CUInt(arguments(5).DataValue)
     End Function
 
-
     Public Function GetQueue() As IList(Of SonosItem)
         Dim searchResult = Browse("Q:0")
         Return SonosItem.Parse(searchResult.Result)
     End Function
+
+#End Region
 
 #Region "Library Functions"
     Public Overridable Function GetFavorites() As IList(Of SonosItem)
@@ -651,6 +647,8 @@ Public Class Track
 End Class
 
 Public Class SonosItem
+    Private m_DIDL As SonosDIDL
+    Private m_Track As Track
 
     Public Overridable Property Track() As Track
         Get
@@ -660,7 +658,7 @@ Public Class SonosItem
             m_Track = value
         End Set
     End Property
-    Private m_Track As Track
+
     Public Overridable Property DIDL() As SonosDIDL
         Get
             Return m_DIDL
@@ -669,7 +667,7 @@ Public Class SonosItem
             m_DIDL = value
         End Set
     End Property
-    Private m_DIDL As SonosDIDL
+
 
     Public Shared Function Parse(xmlString As String) As IList(Of SonosItem)
         Dim xml = XElement.Parse(xmlString)
@@ -691,19 +689,13 @@ Public Class SonosItem
             track.Uri = item.Element(ns + "res").ToString
             track.MetaData = item.Element(r + "resMD").ToString
 
-
             ' fix didl if exist
             Dim didl = New SonosDIDL()
-            'didl.AlbumArtURI = DirectCast(item.Element(upnp + "albumArtURI"), String)
-            'didl.Artist = DirectCast(item.Element(dc + "creator"), String)
-            'didl.Title = DirectCast(item.Element(dc + "title"), String)
-            'didl.Description = DirectCast(item.Element(r + "description"), String)
 
             didl.AlbumArtURI = item.Element(upnp + "albumArtURI").ToString
             didl.Artist = item.Element(dc + "creator").ToString
             didl.Title = item.Element(dc + "title").ToString
             didl.Description = item.Element(r + "description").ToString
-
 
             list.Add(New SonosItem() With { _
                 .Track = track, _
@@ -714,7 +706,6 @@ Public Class SonosItem
         Return list
     End Function
 End Class
-
 
 Public Class PlayerInfo
     Public Property TrackURI() As String
@@ -765,6 +756,14 @@ Public Class PlayerInfo
 End Class
 
 Public Class SonosDIDL
+    
+    Private m_AlbumArtURI As String
+    Private m_Title As String
+    Private m_Artist As String
+    Private m_Album As String
+    Private m_Uri As String
+    Private m_Description As String
+
     Public Property AlbumArtURI() As String
         Get
             Return m_AlbumArtURI
@@ -773,7 +772,7 @@ Public Class SonosDIDL
             m_AlbumArtURI = value
         End Set
     End Property
-    Private m_AlbumArtURI As String
+
     Public Property Title() As String
         Get
             Return m_Title
@@ -782,7 +781,7 @@ Public Class SonosDIDL
             m_Title = value
         End Set
     End Property
-    Private m_Title As String
+
     Public Property Artist() As String
         Get
             Return m_Artist
@@ -791,7 +790,7 @@ Public Class SonosDIDL
             m_Artist = value
         End Set
     End Property
-    Private m_Artist As String
+
     Public Property Album() As String
         Get
             Return m_Album
@@ -800,7 +799,7 @@ Public Class SonosDIDL
             m_Album = value
         End Set
     End Property
-    Private m_Album As String
+
     Public Property Uri() As String
         Get
             Return m_Uri
@@ -809,7 +808,7 @@ Public Class SonosDIDL
             m_Uri = value
         End Set
     End Property
-    Private m_Uri As String
+
     Public Property Description() As String
         Get
             Return m_Description
@@ -818,7 +817,6 @@ Public Class SonosDIDL
             m_Description = value
         End Set
     End Property
-    Private m_Description As String
 
     Public Shared Function Parse(xml As String) As IList(Of SonosDIDL)
         Dim didl = XElement.Parse(xml)
@@ -845,6 +843,7 @@ Public Class SonosDIDL
 
         Return list
     End Function
+
 End Class
 
 Public Class MediaInfo
