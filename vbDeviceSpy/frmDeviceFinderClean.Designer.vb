@@ -104,10 +104,10 @@ Partial Class frmDeviceFinderClean
         Me.ToolStripButton1 = New System.Windows.Forms.ToolStripButton()
         Me.SplitContainer2 = New System.Windows.Forms.SplitContainer()
         Me.SplitContainer3 = New System.Windows.Forms.SplitContainer()
+        Me.propGrid1 = New System.Windows.Forms.PropertyGrid()
         Me.ToolStrip4 = New System.Windows.Forms.ToolStrip()
         Me.ToolStripLabel2 = New System.Windows.Forms.ToolStripLabel()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.propGrid1 = New System.Windows.Forms.PropertyGrid()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -733,6 +733,14 @@ Partial Class frmDeviceFinderClean
         Me.SplitContainer3.SplitterDistance = 480
         Me.SplitContainer3.TabIndex = 0
         '
+        'propGrid1
+        '
+        Me.propGrid1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.propGrid1.Location = New System.Drawing.Point(0, 6)
+        Me.propGrid1.Name = "propGrid1"
+        Me.propGrid1.Size = New System.Drawing.Size(480, 545)
+        Me.propGrid1.TabIndex = 0
+        '
         'ToolStrip4
         '
         Me.ToolStrip4.AutoSize = False
@@ -761,14 +769,6 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
-        '
-        'propGrid1
-        '
-        Me.propGrid1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.propGrid1.Location = New System.Drawing.Point(0, 6)
-        Me.propGrid1.Name = "propGrid1"
-        Me.propGrid1.Size = New System.Drawing.Size(480, 545)
-        Me.propGrid1.TabIndex = 0
         '
         'frmDeviceFinderClean
         '

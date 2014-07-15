@@ -240,7 +240,7 @@ Public Class Player
         End Get
     End Property
 
-    Public ReadOnly Property CurrentTrack() As Track
+    Public ReadOnly Property CurrentTrack() As TrackHolder
         Get
 
             'Throw New NotImplementedException()
@@ -438,7 +438,7 @@ Public Class Player
 
 #Region "Queue/Station Actions"
 
-    Public Sub SetAVTransportURI(track As Track)
+    Public Sub SetAVTransportURI(track As TrackHolder)
         Dim arguments = New UPnPArgument(2) {}
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         arguments(1) = New UPnPArgument("CurrentURI", track.Uri)
@@ -446,7 +446,7 @@ Public Class Player
         AVTransport.InvokeAsync("SetAVTransportURI", arguments)
     End Sub
 
-    Public Function Enqueue(track As Track, Optional asNext As Boolean = False) As UInteger
+    Public Function Enqueue(track As TrackHolder, Optional asNext As Boolean = False) As UInteger
         Dim arguments = New UPnPArgument(7) {}
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         arguments(1) = New UPnPArgument("EnqueuedURI", track.Uri)
@@ -626,7 +626,7 @@ Public Class PlayerState
     Private m_NextTrackMetaData As String
 End Class
 
-Public Class Track
+Public Class TrackHolder
     Public Property Uri() As String
         Get
             Return m_Uri
@@ -652,13 +652,13 @@ End Class
 
 Public Class SonosItem
     Private m_DIDL As SonosDIDL
-    Private m_Track As Track
+    Private m_Track As TrackHolder
 
-    Public Overridable Property Track() As Track
+    Public Overridable Property Track() As TrackHolder
         Get
             Return m_Track
         End Get
-        Set(value As Track)
+        Set(value As TrackHolder)
             m_Track = value
         End Set
     End Property
@@ -673,6 +673,7 @@ Public Class SonosItem
     End Property
 
 
+
     Public Shared Function Parse(xmlString As String) As IList(Of SonosItem)
         Dim xml = XElement.Parse(xmlString)
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
@@ -685,7 +686,7 @@ Public Class SonosItem
         Dim list = New List(Of SonosItem)()
 
         For Each item As XElement In items
-            Dim track = New Track()
+            Dim track = New TrackHolder()
 
             'track.Uri = DirectCast(item.Element(ns + "res"), String)
             'track.MetaData = DirectCast(item.Element(r + "resMD"), String)
@@ -848,6 +849,142 @@ Public Class SonosDIDL
         Return list
     End Function
 
+End Class
+
+Public Class TrackInfo
+
+    Private m_AlbumArtURI As String
+    Private m_Title As String
+    Private m_Artist As String
+    Private m_Album As String
+    Private m_Uri As String
+    Private m_Description As String
+    Private m_AlbumArtist As String
+    Private m_TrackNumber As String
+    Private m_class As String
+    Private m_StreamContent As String
+
+
+
+    Public Property AlbumArtURI() As String
+        Get
+            Return m_AlbumArtURI
+        End Get
+        Set(value As String)
+            m_AlbumArtURI = value
+        End Set
+    End Property
+
+    Public Property AlbumArtist As String
+        Get
+            Return m_AlbumArtist
+        End Get
+        Set(ByVal value As String)
+            m_AlbumArtist = value
+        End Set
+    End Property
+
+    Public Property ItemClass As String
+        Get
+            Return m_class
+        End Get
+        Set(ByVal value As String)
+            m_class = value
+        End Set
+    End Property
+
+    Public Property StreamContent As String
+        Get
+            Return m_StreamContent
+        End Get
+        Set(ByVal value As String)
+            m_StreamContent = value
+        End Set
+    End Property
+
+    Public Property TrackNumber As String
+        Get
+            Return m_TrackNumber
+        End Get
+        Set(ByVal value As String)
+            m_TrackNumber = value
+        End Set
+    End Property
+
+    Public Property Title() As String
+        Get
+            Return m_Title
+        End Get
+        Set(value As String)
+            m_Title = value
+        End Set
+    End Property
+
+    Public Property Artist() As String
+        Get
+            Return m_Artist
+        End Get
+        Set(value As String)
+            m_Artist = value
+        End Set
+    End Property
+
+    Public Property Album() As String
+        Get
+            Return m_Album
+        End Get
+        Set(value As String)
+            m_Album = value
+        End Set
+    End Property
+
+    Public Property Uri() As String
+        Get
+            Return m_Uri
+        End Get
+        Set(value As String)
+            m_Uri = value
+        End Set
+    End Property
+
+    Public Property Description() As String
+        Get
+            Return m_Description
+        End Get
+        Set(value As String)
+            m_Description = value
+        End Set
+    End Property
+
+    Public Shared Function Parse(xml As String) As TrackInfo
+        Dim didl = XElement.Parse(xml)
+        Return Parse(didl)
+    End Function
+
+    Public Shared Function Parse(didl As XElement) As TrackInfo
+        Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
+        Dim dc As XNamespace = "http://purl.org/dc/elements/1.1/"
+        Dim upnp As XNamespace = "urn:schemas-upnp-org:metadata-1-0/upnp/"
+        Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
+
+        Dim items = didl.Elements(ns + "item")
+
+        'Dim list = New List(Of SonosDIDL)()
+        Dim response = New TrackInfo
+        For Each item As XElement In items
+
+            response.AlbumArtURI = item.Element(upnp + "albumArtURI").Value
+            response.Artist = item.Element(dc + "creator").Value
+            response.Title = item.Element(dc + "title").Value
+            response.Album = item.Element(upnp + "album").Value
+            response.AlbumArtist = item.Element(r + "albumArtist").Value
+            response.TrackNumber = item.Element(upnp + "originalTrackNumber").Value
+            response.ItemClass = item.Element(upnp + "class").Value
+            response.StreamContent = item.Element(r + "streamContent").Value
+        Next
+
+        Return response
+    End Function
 End Class
 
 Public Class MediaInfo
