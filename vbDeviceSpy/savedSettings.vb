@@ -17,7 +17,7 @@ Public Class SavedDevice
 
     Public Property LinkedDeviceUDN As String
     Public Property LinkedLocationURL As String
-
+    Public Property LoadSuccess As Boolean
     'Public Property DeviceCode As String
     Public Property SubscribedServices As ArrayList
 
@@ -40,7 +40,9 @@ Public Class SavedDevice
         Me.ManagedDeviceType = deviceType
         Me.LocationURL = locationURL
         Me.LinkedDeviceUDN = LinkedDeviceUDN
-        Me.LinkedLocationURL = LinkedLocationURL
+        Me.LinkedLocationURL = linkedLocationURL
+        Me.LoadSuccess = True
+
     End Sub
 
     'Private Sub Init(displayName As String, uniqueDeviceName As String, isLinkedDevice As Boolean, linkedDevice As String)

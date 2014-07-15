@@ -134,14 +134,32 @@ Public Class discovery
             Select Case managedDeviceType
                 Case eManagedDeviceType.completeDevice, eManagedDeviceType.avTranportDevice
                     savedDevice = New SavedDevice(device.FriendlyName, device.UniqueDeviceName, device.LocationURL, managedDeviceType)
+                    savedDevices.Add(savedDevice)
                 Case eManagedDeviceType.compoundDevice
                     '// lets get the child device (we can optimize this)
                     Dim childDevice As UPnPDevice = GetAvailableDevice(device.User2, eDeviceSearchParameter.UDN)                                                                                             '// get the child device by UDN
                     savedDevice = New SavedDevice(device.FriendlyName, device.UniqueDeviceName, device.LocationURL, managedDeviceType, childDevice.UniqueDeviceName, childDevice.LocationURL)
+                    savedDevices.Add(savedDevice)
+                    'Dim childSavedDevice = New SavedDevice(childDevice.FriendlyName, childDevice.DeviceURN, childDevice.LocationURL, eManagedDeviceType.compoundDevice)
+                    'savedDevices.Add(childSavedDevice)
             End Select
-            savedDevices.Add(savedDevice)
+
         Next
         My.Settings.SavedDevices = savedDevices
+    End Sub
+
+    Sub LoadSettings()
+        Dim savedDevices As SavedDevices = My.Settings.SavedDevices
+        For Each savedDevice As SavedDevice In savedDevices
+            Select Case savedDevice.ManagedDeviceType
+                Case eManagedDeviceType.compoundDevice
+                    ForceAddDevice(savedDevice.LocationURL, True)
+                    ForceAddDevice(savedDevice.LinkedLocationURL, True)
+
+                Case eManagedDeviceType.avTranportDevice, eManagedDeviceType.completeDevice
+                    ForceAddDevice(savedDevice.LocationURL, True)
+            End Select
+        Next
     End Sub
 
 #End Region
@@ -151,6 +169,7 @@ Public Class discovery
     Protected Sub HandleAddedDevice(sender As UPnPSmartControlPoint, device As UPnPDevice)
         If Not Devices.Contains(device) Then Devices.Add(device)
         RaiseEvent deviceDiscoveryEvent(device, eDeviceDiscoveryEvent.deviceAdded)
+        AutoLoadManagedDevice(device)
     End Sub
 
     '// called by the SmartControlPoint when a devcie is removed
@@ -163,6 +182,52 @@ Public Class discovery
         If Not Devices.Contains(device) Then Devices.Add(device)
         RaiseEvent deviceDiscoveryEvent(device, eDeviceDiscoveryEvent.deviceAdded)
     End Sub
+
+    '// This is a callback that is called when a Forced Add AT STARTUP succeeds and a device is found
+    Private Sub HandleStartupAddDevice(sender As OpenSource.UPnP.UPnPDeviceFactory, device As OpenSource.UPnP.UPnPDevice, URL As System.Uri)
+        If Not Devices.Contains(device) Then Devices.Add(device)
+        RaiseEvent deviceDiscoveryEvent(device, eDeviceDiscoveryEvent.deviceAdded)
+        AutoLoadManagedDevice(device)
+    End Sub
+
+    '// as devices arrive, put them in the managed device Array if we have all the required devices
+    Private Sub AutoLoadManagedDevice(device As UPnPDevice)
+        Dim savedDevices As SavedDevices = My.Settings.SavedDevices
+        For Each savedDevice As SavedDevice In savedDevices
+            If savedDevice.UniqueDeviceName = device.UniqueDeviceName Then
+                '// we have found a device to auto manage
+                device.User = savedDevice.ManagedDeviceType
+                device.User2 = savedDevice.LinkedDeviceUDN
+                If ManagedDevices.Contains(device) Then Exit Sub '// it's already there! abort
+                Dim managedDeviceType As eManagedDeviceType = device.User
+
+                If managedDeviceType = eManagedDeviceType.compoundDevice Then
+                    Dim childDevice As UPnPDevice = GetAvailableDevice(savedDevice.LinkedDeviceUDN, eDeviceSearchParameter.UDN)
+                    '// if it exists we can make the compound device
+                    If childDevice IsNot Nothing Then
+                        AddManagedDevice(device, childDevice)
+                    Else    '// the child device isn't available. pick up the compound device when the child device arrives
+                        '// do nothing. 
+                        Exit Sub
+                    End If
+                Else
+                    '// its a complete or AVTransport so add it to managed list.
+                    AddManagedDevice(device)
+                End If
+            ElseIf savedDevice.LinkedDeviceUDN = device.UniqueDeviceName Then
+                '// we have the child. Is the parent here?
+                Dim parentDevice As UPnPDevice = GetAvailableDevice(savedDevice.UniqueDeviceName, eDeviceSearchParameter.UDN)
+                If parentDevice IsNot Nothing Then
+                    AddManagedDevice(parentDevice, device)
+                    '//We have the parent - create the combo device
+                Else
+                    '// parent isn't available. get outta here.
+                    Exit Sub
+                End If
+            End If
+        Next
+    End Sub
+
 
     '// This is a callback that is called when a Forced Add FAILS
     Private Sub HandleForceAddFailed(sender As UPnPDeviceFactory, LocationUri As Uri, e As Exception, urn As String)
@@ -249,8 +314,8 @@ Public Class discovery
 
 
 
-        ForceAddDevice(parentURL)
-        ForceAddDevice(childURL)
+        ForceAddDevice(parentURL, False)
+        ForceAddDevice(childURL, False)
 
 
     End Sub
@@ -265,7 +330,7 @@ Public Class discovery
 
 
     '// Try and force add a known device
-    Private Sub ForceAddDevice(deviceDescriptionURL As String)
+    Private Sub ForceAddDevice(deviceDescriptionURL As String, isStartup As Boolean)
         Try
             Dim NetworkUri = New Uri(deviceDescriptionURL)
             'Dim ipList As System.Net.IPAddress() = System.Net.Dns.GetHostByName(System.Net.Dns.GetHostName()).AddressList
@@ -274,10 +339,16 @@ Public Class discovery
             Dim myIP As System.Net.IPAddress = GetFirstValidIPAddresses()
 
             Dim hostname As String = System.Net.Dns.GetHostName
+            If isStartup Then
+                '// is this efficient? Not sure. we use the HandleSTARTUP callback in this case
+                Dim df As UPnPDeviceFactory = New UPnPDeviceFactory(NetworkUri, 1800, New UPnPDeviceFactory.UPnPDeviceHandler(AddressOf HandleStartupAddDevice), New UPnPDeviceFactory.UPnPDeviceFailedHandler(AddressOf HandleForceAddFailed), myIP, Nothing)
 
-            '// is this efficient? Not sure.
-            Dim df As UPnPDeviceFactory = New UPnPDeviceFactory(NetworkUri, 1800, New UPnPDeviceFactory.UPnPDeviceHandler(AddressOf HandleForceAddDevice), New UPnPDeviceFactory.UPnPDeviceFailedHandler(AddressOf HandleForceAddFailed), myIP, Nothing)
+            Else
+                '// is this efficient? Not sure. we use the HandleFORCEADD callback in this case
+                Dim df As UPnPDeviceFactory = New UPnPDeviceFactory(NetworkUri, 1800, New UPnPDeviceFactory.UPnPDeviceHandler(AddressOf HandleForceAddDevice), New UPnPDeviceFactory.UPnPDeviceFailedHandler(AddressOf HandleForceAddFailed), myIP, Nothing)
 
+            End If
+            
         Catch ex_23 As Exception
             MessageBox.Show("Invalid URI!")
         End Try

@@ -69,8 +69,18 @@ Public Class frmDeviceFinderClean
             ManagedRootNodes.Add(item.Key, root)
             Me.ManagedTree.Nodes.Add(root)
         Next
+        If My.Settings.SavedDevices IsNot Nothing Then
+            If My.Settings.SavedDevices.Count = 0 Then
+                disc.BeginNetworkScan()
+                'Else
+                '    disc.LoadSettings()
+            End If
+            'Else
 
+        End If
         disc.BeginNetworkScan()
+        
+
         GuiResizing()
     End Sub
 
@@ -264,6 +274,9 @@ Public Class frmDeviceFinderClean
             disc.AddManagedDevice(menuItem.Tag(0), menuItem.Tag(1))
         End If
     End Sub
+
+
+
 
     '// Get detailed data on an item
     Private Sub OnSelectedItem(sender As Object, e As TreeViewEventArgs) Handles deviceTree.AfterSelect
@@ -563,5 +576,24 @@ Public Class frmDeviceFinderClean
             '// it's a remove device event!
             disc.RemoveManagedDevice(menuItem.Tag)
         End If
+    End Sub
+
+    Private Sub tabManaged_Selected(sender As Object, e As EventArgs) Handles tabControl1.Selected
+        Debug.Print("TAB" & tabControl1.SelectedIndex)
+        'If tabControl1.SelectedIndex = 1 Then
+        '            ElseIf tabControl1.SelectedIndex = 0 Then
+        '    '            ManagedTree = TreeView1
+        'End If
+        Select Case tabControl1.SelectedIndex
+            Case 0
+                splitter3.Panel2.Controls.Add(ManagedTree)
+                'ManagedTree.Dock = DockStyle.Fill
+                ManagedTree.BringToFront()
+            Case 1
+                SplitContainer1.Panel1.Controls.Add(ManagedTree)
+                'ManagedTree.Dock = DockStyle.Fill
+                ManagedTree.BringToFront()
+        End Select
+        
     End Sub
 End Class
