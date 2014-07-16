@@ -88,10 +88,14 @@ Public Class frmDeviceFinderClean
     End Sub
 
     Private Sub CleanUp()
+        player = Nothing
+        Debug.Print("Exiting.....")
         disc.SaveSettings()
         disc.CleanUp()
         disc = Nothing
     End Sub
+
+
 #End Region
 
 #Region "Callbacks"
@@ -293,6 +297,10 @@ Public Class frmDeviceFinderClean
         Me.listInfo.Items.AddRange(CType(Items.ToArray(GetType(ListViewItem)), ListViewItem()))
     End Sub
 
+    Private Sub frmDeviceFinderClean_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        CleanUp()
+    End Sub
+
     '// on load
     Private Sub frmDeviceFinder_Load(sender As Object, e As EventArgs) Handles Me.Load
         Init()
@@ -301,7 +309,7 @@ Public Class frmDeviceFinderClean
     '// on exit
     Private Sub Form1_HandleDestroyed(sender As Object, e As EventArgs) Handles Me.HandleDestroyed
         'Me.deviceTree.Nodes.Add(Me.UPnpRoot)
-        CleanUp()
+
     End Sub
 
     '// on GUI resize
@@ -390,11 +398,11 @@ Public Class frmDeviceFinderClean
         'End If
         Select Case tabControl1.SelectedIndex
             Case 0
-                splitter3.Panel2.Controls.Add(ManagedTree)
+                splitter1_3.Panel2.Controls.Add(ManagedTree)
                 'ManagedTree.Dock = DockStyle.Fill
                 ManagedTree.BringToFront()
             Case 1
-                SplitContainer1.Panel1.Controls.Add(ManagedTree)
+                splitter2_1.Panel1.Controls.Add(ManagedTree)
                 'ManagedTree.Dock = DockStyle.Fill
                 ManagedTree.BringToFront()
         End Select
@@ -413,7 +421,7 @@ Public Class frmDeviceFinderClean
 
     Private Sub HighlightSubscribedNode(node As TreeNode, bHighlight As Boolean)
         If bHighlight Then
-            Me.splitter2.Visible = True
+            Me.splitter1_2.Visible = True
             Me.eventListView.Visible = True
             Me.menuItem3.Checked = True
             node.ImageIndex = 3
@@ -617,6 +625,32 @@ Public Class frmDeviceFinderClean
 
     Private Sub UpdatePlayerInfo(obj As Player)
         propGrid1.SelectedObject = obj
+        lblAlbum.Text = obj.CurrentTrack.Album
+        lblTitle.Text = obj.CurrentTrack.Title
+        If obj.CurrentTrack.Artist <> obj.CurrentTrack.AlbumArtist Then
+            lblArtist.Text = obj.CurrentTrack.Artist
+            lblArtist2.Text = obj.CurrentTrack.AlbumArtist
+        Else
+            lblArtist2.Text = obj.CurrentTrack.AlbumArtist
+
+        End If
+        'If WebBrowser1.Url.ToString <> obj.CurrentTrack.AlbumArtURI Then
+
+        If picBox.ImageLocation IsNot Nothing Then
+            If picBox.ImageLocation <> obj.CurrentTrack.AlbumArtURI Then
+                picBox.ImageLocation = obj.CurrentTrack.AlbumArtURI
+            End If
+        Else
+            picBox.ImageLocation = obj.CurrentTrack.AlbumArtURI
+
+        End If
+
+
+        'End If
+        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentState.RelTime, obj.CurrentTrack.Duration)
+        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentState.RelTime.TotalSeconds, obj.CurrentTrack.Duration.TotalSeconds, obj.CurrentState.RelTime.TotalSeconds / obj.CurrentTrack.Duration.TotalSeconds))
+        pbDuration.Value = (obj.CurrentState.RelTime.TotalSeconds / obj.CurrentTrack.Duration.TotalSeconds) * 100
+        lblDevice.Text = player.Device.FriendlyName
     End Sub
 
     Private Sub propGrid1_Click(sender As Object, e As EventArgs) Handles propGrid1.SelectedGridItemChanged
@@ -629,6 +663,15 @@ Public Class frmDeviceFinderClean
                 Debug.Print("Invalid Property")
             End Try
         End If
+
+    End Sub
+
+
+    Private Sub btnPlay_Click(sender As Object, e As EventArgs) Handles btnPlay.Click
+        player.Play()
+    End Sub
+
+    Private Sub btnNext_Click(sender As Object, e As EventArgs) Handles btnNext.Click
 
     End Sub
 End Class

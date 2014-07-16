@@ -28,6 +28,7 @@ Public Class Player
     Private m_nextTrack As New TrackInfo
     Private m_prevTrack As New TrackInfo
     Private positionTimer As Timer
+    Private Shared _missingAlbumArtPath As String = "http://www.kavan.us/musicweb/images/No-album-art300x300.jpg"
 
     Public Event StateChanged As Action(Of Player)
 
@@ -149,7 +150,7 @@ Public Class Player
             m_nextTrack.TrackCount = m_mediaInfo.NrOfTracks
             m_prevTrack.TrackCount = m_mediaInfo.NrOfTracks
             m_currentTrack.Duration = m_currentState.CurrentTrackDuration
-
+            m_currentTrack.AlbumArtURI = CreateAlbumArtURI(m_currentTrack.AlbumArtURI, Device.BaseURL.ToString)
             If GetPlayerStatus() = PlayerStatus.Playing Then
                 StartPolling()
             End If
@@ -162,6 +163,23 @@ Public Class Player
         RaiseEvent StateChanged(Me)
 
     End Sub
+
+    Private Function CreateAlbumArtURI(rawPath As String, documentURL As String) As String
+
+        If rawPath = "" Then
+            Return _missingAlbumArtPath
+        Else
+
+            Dim art As String = rawPath
+            Dim baseUri As Uri = New Uri(documentURL)
+            Dim path As String = art.Substring(0, art.IndexOf("?"c))
+            Dim qs As String = art.Substring(art.IndexOf("?"c))
+            Dim builder As New UriBuilder(baseUri.Scheme, baseUri.Host, baseUri.Port, path, qs)
+            Return builder.Uri.OriginalString
+        End If
+
+    End Function
+
 
     Private Function ParseDuration(value As String) As TimeSpan
         If String.IsNullOrEmpty(value) Then
@@ -730,6 +748,7 @@ Public Class TrackInfo
     Public Property MetaData As String
 
 
+
     Public Shared Function Parse(xml As String) As TrackInfo
         If xml = "" Then Return New TrackInfo
         Dim didl = XElement.Parse(xml)
@@ -794,6 +813,8 @@ Public Class TrackInfo
         Next
 
     End Sub
+
+
 
 End Class
 
