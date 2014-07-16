@@ -631,8 +631,8 @@ Public Class frmDeviceFinderClean
             lblArtist.Text = obj.CurrentTrack.Artist
             lblArtist2.Text = obj.CurrentTrack.AlbumArtist
         Else
-            lblArtist2.Text = obj.CurrentTrack.AlbumArtist
-
+            lblArtist.Text = obj.CurrentTrack.AlbumArtist
+            lblArtist2.Text = ""
         End If
         'If WebBrowser1.Url.ToString <> obj.CurrentTrack.AlbumArtURI Then
 
@@ -647,9 +647,12 @@ Public Class frmDeviceFinderClean
 
 
         'End If
-        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentState.RelTime, obj.CurrentTrack.Duration)
-        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentState.RelTime.TotalSeconds, obj.CurrentTrack.Duration.TotalSeconds, obj.CurrentState.RelTime.TotalSeconds / obj.CurrentTrack.Duration.TotalSeconds))
-        pbDuration.Value = (obj.CurrentState.RelTime.TotalSeconds / obj.CurrentTrack.Duration.TotalSeconds) * 100
+        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentState.RelTime, obj.PlayerInfo.TrackDuration)
+        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentState.RelTime.TotalSeconds, obj.PlayerInfo.TrackDuration.TotalSeconds, obj.CurrentState.RelTime.TotalSeconds / obj.PlayerInfo.TrackDuration.TotalSeconds))
+        If obj.PlayerInfo.TrackDuration.TotalSeconds > obj.CurrentState.RelTime.TotalSeconds Then
+            pbDuration.Value = (obj.CurrentState.RelTime.TotalSeconds / obj.PlayerInfo.TrackDuration.TotalSeconds) * 100
+        End If
+
         lblDevice.Text = player.Device.FriendlyName
     End Sub
 
@@ -672,6 +675,18 @@ Public Class frmDeviceFinderClean
     End Sub
 
     Private Sub btnNext_Click(sender As Object, e As EventArgs) Handles btnNext.Click
+        player.Next()
+    End Sub
 
+    Private Sub btnPrev_Click(sender As Object, e As EventArgs) Handles btnPrev.Click
+        player.Previous()
+    End Sub
+
+    Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
+        player.Stop()
+    End Sub
+
+    Private Sub btnPause_Click(sender As Object, e As EventArgs) Handles btnPause.Click
+        player.Pause()
     End Sub
 End Class

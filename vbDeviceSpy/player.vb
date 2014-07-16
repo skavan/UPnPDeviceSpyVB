@@ -14,6 +14,7 @@ End Enum
 
 Public Class Player
 
+#Region "Variables & Events"
     Private m_mediaRenderer As UPnPDevice
     Private m_avTransport As UPnPService
     Private m_mediaServer As UPnPDevice
@@ -32,6 +33,9 @@ Public Class Player
 
     Public Event StateChanged As Action(Of Player)
 
+
+#End Region
+    
 #Region "Initialize & Cleanup System"
 
     Private Sub SubscribeToEvents()
@@ -47,7 +51,8 @@ Public Class Player
     End Sub
 
     Protected Overrides Sub Finalize()
-        positionTimer.Dispose()
+
+        If positionTimer IsNot Nothing Then positionTimer.Dispose()
         AVTransport.UnSubscribe(Nothing)
         MyBase.Finalize()
     End Sub
@@ -73,6 +78,7 @@ Public Class Player
 
 #End Region
     
+#Region "XML Processing Methods"
 
     Private Function GetAttributeValue(instance As XElement, elementName As XName, attrName As String) As String
         Dim element As XElement = instance.Element(elementName)
@@ -101,7 +107,7 @@ Public Class Player
         ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
         If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
             Debug.Print("ERROR")
-            Return
+            'Return
         End If
 
         Dim preliminaryState = New PlayerState()
@@ -116,6 +122,12 @@ Public Class Player
         End With
 
         m_currentState = preliminaryState
+        Select Case m_currentState.TransportState
+            Case "PLAYING"
+                StartPolling()
+            Case "PAUSED_PLAYBACK", "PAUSED", "STOPPED"
+                positionTimer.Change(0, Timeout.Infinite)
+        End Select
         Debug.Print("RAISING EVENT 2")
         ' every time we have got a state change, do a PositionInfo
         Try
@@ -149,7 +161,7 @@ Public Class Player
             m_currentTrack.TrackCount = m_mediaInfo.NrOfTracks
             m_nextTrack.TrackCount = m_mediaInfo.NrOfTracks
             m_prevTrack.TrackCount = m_mediaInfo.NrOfTracks
-            m_currentTrack.Duration = m_currentState.CurrentTrackDuration
+            'm_currentTrack.Duration = m_currentState.CurrentTrackDuration
             m_currentTrack.AlbumArtURI = CreateAlbumArtURI(m_currentTrack.AlbumArtURI, Device.BaseURL.ToString)
             If GetPlayerStatus() = PlayerStatus.Playing Then
                 StartPolling()
@@ -170,7 +182,11 @@ Public Class Player
             Return _missingAlbumArtPath
         Else
 
+            If rawPath.StartsWith("http") Then
+                Return rawPath
+            End If
             Dim art As String = rawPath
+
             Dim baseUri As Uri = New Uri(documentURL)
             Dim path As String = art.Substring(0, art.IndexOf("?"c))
             Dim qs As String = art.Substring(art.IndexOf("?"c))
@@ -180,7 +196,6 @@ Public Class Player
 
     End Function
 
-
     Private Function ParseDuration(value As String) As TimeSpan
         If String.IsNullOrEmpty(value) Then
             Return TimeSpan.FromSeconds(0)
@@ -188,6 +203,8 @@ Public Class Player
         Return TimeSpan.Parse(value)
     End Function
 
+#End Region
+    
 #Region "public properties"
 
     Public Property Name() As String
@@ -319,7 +336,8 @@ Public Class Player
 
     Public Sub StartPolling()
         If positionTimer IsNot Nothing Then
-            Return
+            positionTimer.Change(100, 1000)
+            Exit Sub
         End If
 
         If CurrentStatus <> PlayerStatus.Playing Then
@@ -333,14 +351,17 @@ Public Class Player
         Dim positionInfo = GetPositionInfo()
         CurrentState.RelTime = positionInfo.RelTime
         CurrentState.LastStateChange = DateTime.Now
-
+        GetPlayerStatus()
         RaiseEvent StateChanged(Me)
+        Debug.Print("")
+        m_currentState.TransportState = CurrentStatus
         Select Case m_currentState.TransportState
             Case "PLAYING"
-            Case "PAUSED", "STOPPED"
-                positionTimer.Dispose()
+
+            Case "PAUSED", "STOPPED", "PLAYING_PAUSED", "PAUSED_PLAYBACK"
+                positionTimer.Change(0, System.Threading.Timeout.Infinite)
             Case Else
-                positionTimer.Dispose()
+                'positionTimer.Dispose()
         End Select
         'If StateChanged IsNot Nothing Then
         '    StateChanged.Invoke(Me)
@@ -424,6 +445,7 @@ Public Class Player
             .RelTime = relTime _
         }
     End Function
+
 #End Region
 
 #Region "RenderingControl Actions"
@@ -477,6 +499,8 @@ Public Class Player
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         arguments(1) = New UPnPArgument("Speed", "1")
         AVTransport.InvokeAsync("Play", arguments)
+        positionTimer.Change(0, 1000)
+        'StartPolling()
     End Sub
 
     Public Sub Seek(position As UInteger)
@@ -491,6 +515,24 @@ Public Class Player
         Dim arguments = New UPnPArgument(0) {}
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         AVTransport.InvokeAsync("Pause", arguments)
+    End Sub
+
+    Public Sub [Stop]()
+        Dim arguments = New UPnPArgument(0) {}
+        arguments(0) = New UPnPArgument("InstanceID", 0UI)
+        AVTransport.InvokeAsync("Stop", arguments)
+    End Sub
+
+    Public Sub [Next]()
+        Dim arguments = New UPnPArgument(0) {}
+        arguments(0) = New UPnPArgument("InstanceID", 0UI)
+        AVTransport.InvokeAsync("Next", arguments)
+    End Sub
+
+    Public Sub Previous()
+        Dim arguments = New UPnPArgument(0) {}
+        arguments(0) = New UPnPArgument("InstanceID", 0UI)
+        AVTransport.InvokeAsync("Previous", arguments)
     End Sub
 
 #End Region
@@ -731,7 +773,7 @@ Public Class TrackInfo
     Public Property Title As String
     Public Property Artist As String
     Public Property Album As String
-    Public Property Duration As TimeSpan
+    'Public Property Duration As TimeSpan
 
     Public Property AlbumArtURI As String
     Public Property TrackNumber As String
@@ -760,6 +802,7 @@ Public Class TrackInfo
         Dim dc As XNamespace = "http://purl.org/dc/elements/1.1/"
         Dim upnp As XNamespace = "urn:schemas-upnp-org:metadata-1-0/upnp/"
         Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
+        Dim dlna As XNamespace = "urn:schemas-dlna-org:metadata-1-0"
 
         Dim items = didl.Elements(ns + "item")
 
@@ -787,6 +830,9 @@ Public Class TrackInfo
             response.Artist = GetElementValue(item, dc + "creator")
             SetElementFilteredValue(response.AlbumArtist, item, upnp + "artist", "role", "AlbumArtist")
             SetElementFilteredValue(response.Artist, item, upnp + "artist", "role", "Performer")
+            SetElementFilteredValue(response.AlbumArtURI, item, upnp + "albumArtURI", dlna + "profileID", "JPEG_MED")
+
+
         Next
 
         Return response
@@ -802,7 +848,7 @@ Public Class TrackInfo
         End If
     End Function
 
-    Private Shared Sub SetElementFilteredValue(ByRef Value As String, instance As XElement, elementName As XName, attributeName As String, attributeValue As String)
+    Private Shared Sub SetElementFilteredValue(ByRef Value As String, instance As XElement, elementName As XName, attributeName As XName, attributeValue As String)
         For Each element As XElement In instance.Elements(elementName)
             If element.Attribute(attributeName) IsNot Nothing Then
                 If element.Attribute(attributeName).Value = attributeValue Then

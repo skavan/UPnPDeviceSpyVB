@@ -24,7 +24,7 @@ Partial Class frmDeviceFinderClean
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmDeviceFinderClean))
-        Dim ListViewItem2 As System.Windows.Forms.ListViewItem = New System.Windows.Forms.ListViewItem(New String() {""}, -1, System.Drawing.SystemColors.WindowText, System.Drawing.SystemColors.Window, New System.Drawing.Font("Microsoft Sans Serif", 8.25!))
+        Dim ListViewItem1 As System.Windows.Forms.ListViewItem = New System.Windows.Forms.ListViewItem(New String() {""}, -1, System.Drawing.SystemColors.WindowText, System.Drawing.SystemColors.Window, New System.Drawing.Font("Microsoft Sans Serif", 8.25!))
         Me.mainMenu = New System.Windows.Forms.MainMenu(Me.components)
         Me.menuItem1 = New System.Windows.Forms.MenuItem()
         Me.manuallyAddDeviceMenuItem = New System.Windows.Forms.MenuItem()
@@ -128,6 +128,7 @@ Partial Class frmDeviceFinderClean
         Me.btnNext = New System.Windows.Forms.Button()
         Me.btnPlay = New System.Windows.Forms.Button()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
+        Me.btnPause = New System.Windows.Forms.Button()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -589,7 +590,7 @@ Partial Class frmDeviceFinderClean
         Me.listInfo.ContextMenu = Me.listInfoContextMenu
         Me.listInfo.Dock = System.Windows.Forms.DockStyle.Fill
         Me.listInfo.FullRowSelect = True
-        Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem2})
+        Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
         Me.listInfo.Location = New System.Drawing.Point(0, 6)
         Me.listInfo.Name = "listInfo"
         Me.listInfo.Size = New System.Drawing.Size(480, 394)
@@ -855,6 +856,7 @@ Partial Class frmDeviceFinderClean
         '
         'Splitter3_2.Panel2
         '
+        Me.Splitter3_2.Panel2.Controls.Add(Me.btnPause)
         Me.Splitter3_2.Panel2.Controls.Add(Me.lblDevice)
         Me.Splitter3_2.Panel2.Controls.Add(Me.btnStop)
         Me.Splitter3_2.Panel2.Controls.Add(Me.btnPrev)
@@ -995,7 +997,7 @@ Partial Class frmDeviceFinderClean
         '
         'btnStop
         '
-        Me.btnStop.Location = New System.Drawing.Point(271, 16)
+        Me.btnStop.Location = New System.Drawing.Point(187, 16)
         Me.btnStop.Name = "btnStop"
         Me.btnStop.Size = New System.Drawing.Size(155, 90)
         Me.btnStop.TabIndex = 3
@@ -1004,7 +1006,7 @@ Partial Class frmDeviceFinderClean
         '
         'btnPrev
         '
-        Me.btnPrev.Location = New System.Drawing.Point(99, 16)
+        Me.btnPrev.Location = New System.Drawing.Point(14, 16)
         Me.btnPrev.Name = "btnPrev"
         Me.btnPrev.Size = New System.Drawing.Size(155, 90)
         Me.btnPrev.TabIndex = 2
@@ -1013,7 +1015,7 @@ Partial Class frmDeviceFinderClean
         '
         'btnNext
         '
-        Me.btnNext.Location = New System.Drawing.Point(615, 16)
+        Me.btnNext.Location = New System.Drawing.Point(706, 16)
         Me.btnNext.Name = "btnNext"
         Me.btnNext.Size = New System.Drawing.Size(155, 90)
         Me.btnNext.TabIndex = 1
@@ -1022,7 +1024,7 @@ Partial Class frmDeviceFinderClean
         '
         'btnPlay
         '
-        Me.btnPlay.Location = New System.Drawing.Point(443, 16)
+        Me.btnPlay.Location = New System.Drawing.Point(533, 16)
         Me.btnPlay.Name = "btnPlay"
         Me.btnPlay.Size = New System.Drawing.Size(155, 90)
         Me.btnPlay.TabIndex = 0
@@ -1038,6 +1040,15 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
+        '
+        'btnPause
+        '
+        Me.btnPause.Location = New System.Drawing.Point(360, 16)
+        Me.btnPause.Name = "btnPause"
+        Me.btnPause.Size = New System.Drawing.Size(155, 90)
+        Me.btnPause.TabIndex = 5
+        Me.btnPause.Text = "Pause"
+        Me.btnPause.UseVisualStyleBackColor = True
         '
         'frmDeviceFinderClean
         '
@@ -1211,4 +1222,5 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents btnNext As System.Windows.Forms.Button
     Friend WithEvents btnPlay As System.Windows.Forms.Button
     Friend WithEvents picBox As System.Windows.Forms.PictureBox
+    Friend WithEvents btnPause As System.Windows.Forms.Button
 End Class
