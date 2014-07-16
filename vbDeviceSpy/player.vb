@@ -35,7 +35,7 @@ Public Class Player
 
 
 #End Region
-    
+
 #Region "Initialize & Cleanup System"
 
     Private Sub SubscribeToEvents()
@@ -77,7 +77,7 @@ Public Class Player
     End Sub
 
 #End Region
-    
+
 #Region "XML Processing Methods"
 
     Private Function GetAttributeValue(instance As XElement, elementName As XName, attrName As String) As String
@@ -204,7 +204,7 @@ Public Class Player
     End Function
 
 #End Region
-    
+
 #Region "public properties"
 
     Public Property Name() As String
@@ -784,7 +784,7 @@ Public Class TrackInfo
     Public Property ItemClass As String
     Public Property StreamContent As String
     Public Property FileURL As String
-    
+
     Public Property Uri As String
     Public Property Description As String
     Public Property MetaData As String
