@@ -122,13 +122,14 @@ Partial Class frmDeviceFinderClean
         Me.lblArtist = New System.Windows.Forms.Label()
         Me.lblAlbum = New System.Windows.Forms.Label()
         Me.lblTitle = New System.Windows.Forms.Label()
+        Me.btnPause = New System.Windows.Forms.Button()
         Me.lblDevice = New System.Windows.Forms.Label()
         Me.btnStop = New System.Windows.Forms.Button()
         Me.btnPrev = New System.Windows.Forms.Button()
         Me.btnNext = New System.Windows.Forms.Button()
         Me.btnPlay = New System.Windows.Forms.Button()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.btnPause = New System.Windows.Forms.Button()
+        Me.mnuGo = New System.Windows.Forms.MenuItem()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -184,47 +185,47 @@ Partial Class frmDeviceFinderClean
         'menuItem1
         '
         Me.menuItem1.Index = 0
-        Me.menuItem1.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.manuallyAddDeviceMenuItem, Me.menuItem15, Me.menuItem12, Me.menuItem9, Me.menuItem4, Me.menuItem13, Me.menuItem14, Me.menuItem2})
+        Me.menuItem1.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuGo, Me.manuallyAddDeviceMenuItem, Me.menuItem15, Me.menuItem12, Me.menuItem9, Me.menuItem4, Me.menuItem13, Me.menuItem14, Me.menuItem2})
         Me.menuItem1.Text = "&File"
         '
         'manuallyAddDeviceMenuItem
         '
-        Me.manuallyAddDeviceMenuItem.Index = 0
+        Me.manuallyAddDeviceMenuItem.Index = 1
         Me.manuallyAddDeviceMenuItem.Text = "Manually Add Device"
         '
         'menuItem15
         '
-        Me.menuItem15.Index = 1
+        Me.menuItem15.Index = 2
         Me.menuItem15.Text = "-"
         '
         'menuItem12
         '
-        Me.menuItem12.Index = 2
+        Me.menuItem12.Index = 3
         Me.menuItem12.Text = "Copy &information table to clipboard"
         '
         'menuItem9
         '
-        Me.menuItem9.Index = 3
+        Me.menuItem9.Index = 4
         Me.menuItem9.Text = "Copy &event log to clipboard"
         '
         'menuItem4
         '
-        Me.menuItem4.Index = 4
+        Me.menuItem4.Index = 5
         Me.menuItem4.Text = "-"
         '
         'menuItem13
         '
-        Me.menuItem13.Index = 5
+        Me.menuItem13.Index = 6
         Me.menuItem13.Text = "&Clear Event Log"
         '
         'menuItem14
         '
-        Me.menuItem14.Index = 6
+        Me.menuItem14.Index = 7
         Me.menuItem14.Text = "-"
         '
         'menuItem2
         '
-        Me.menuItem2.Index = 7
+        Me.menuItem2.Index = 8
         Me.menuItem2.Text = "E&xit"
         '
         'menuItem7
@@ -983,6 +984,15 @@ Partial Class frmDeviceFinderClean
         Me.lblTitle.Text = "Track Title"
         Me.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
+        'btnPause
+        '
+        Me.btnPause.Location = New System.Drawing.Point(360, 16)
+        Me.btnPause.Name = "btnPause"
+        Me.btnPause.Size = New System.Drawing.Size(155, 90)
+        Me.btnPause.TabIndex = 5
+        Me.btnPause.Text = "Pause"
+        Me.btnPause.UseVisualStyleBackColor = True
+        '
         'lblDevice
         '
         Me.lblDevice.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
@@ -1041,14 +1051,10 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
         '
-        'btnPause
+        'mnuGo
         '
-        Me.btnPause.Location = New System.Drawing.Point(360, 16)
-        Me.btnPause.Name = "btnPause"
-        Me.btnPause.Size = New System.Drawing.Size(155, 90)
-        Me.btnPause.TabIndex = 5
-        Me.btnPause.Text = "Pause"
-        Me.btnPause.UseVisualStyleBackColor = True
+        Me.mnuGo.Index = 0
+        Me.mnuGo.Text = "Go"
         '
         'frmDeviceFinderClean
         '
@@ -1223,4 +1229,5 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents btnPlay As System.Windows.Forms.Button
     Friend WithEvents picBox As System.Windows.Forms.PictureBox
     Friend WithEvents btnPause As System.Windows.Forms.Button
+    Friend WithEvents mnuGo As System.Windows.Forms.MenuItem
 End Class

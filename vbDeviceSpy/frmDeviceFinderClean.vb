@@ -1,4 +1,5 @@
 ﻿Imports OpenSource.UPnP
+Imports OpenSource.Utilities
 
 Public Class frmDeviceFinderClean
 
@@ -48,7 +49,7 @@ Public Class frmDeviceFinderClean
 #Region "Initialization & Cleanup"
 
     Private Sub Init()
-
+        
         Categories.Add("urn:schemas-upnp-org:device:MediaRenderer:1", "Media Renderers")
         Categories.Add("urn:schemas-upnp-org:device:MediaServer:1", "Media Servers")
         Categories.Add("OTHER", "Other")
@@ -72,27 +73,28 @@ Public Class frmDeviceFinderClean
             ManagedRootNodes.Add(item.Key, root)
             Me.ManagedTree.Nodes.Add(root)
         Next
-        If My.Settings.SavedDevices IsNot Nothing Then
-            If My.Settings.SavedDevices.Count = 0 Then
-                disc.BeginNetworkScan()
-                'Else
-                '    disc.LoadSettings()
-            End If
-            'Else
-
-        End If
-        disc.BeginNetworkScan()
         
+
+        InstanceTracker.Enabled = True
+        InstanceTracker.Display()
+
+        EventLogger.ShowAll = True
 
         GuiResizing()
     End Sub
 
     Private Sub CleanUp()
+        InstanceTracker.Enabled = False
+        InstanceTracker.ActiveForm.Close()
         player = Nothing
         Debug.Print("Exiting.....")
         disc.SaveSettings()
         disc.CleanUp()
+
+
         disc = Nothing
+
+
     End Sub
 
 
@@ -101,6 +103,7 @@ Public Class frmDeviceFinderClean
 #Region "Callbacks"
 
     Private Sub disc_deviceDiscoveryEvent(device As UPnPDevice, deviceChangeEvent As discovery.eDeviceDiscoveryEvent) Handles disc.deviceDiscoveryEvent
+
         Select Case deviceChangeEvent
             Case discovery.eDeviceDiscoveryEvent.deviceAdded
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, False})
@@ -108,6 +111,7 @@ Public Class frmDeviceFinderClean
             Case discovery.eDeviceDiscoveryEvent.deviceRemoved
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {device, False})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceAdded
+                EventLogger.Log(Me, EventLogEntryType.Error, device.FriendlyName & " " & deviceChangeEvent.ToString)
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, True})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceRemoved
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), {device, True})
@@ -297,6 +301,7 @@ Public Class frmDeviceFinderClean
         Me.listInfo.Items.AddRange(CType(Items.ToArray(GetType(ListViewItem)), ListViewItem()))
     End Sub
 
+    '// on exit
     Private Sub frmDeviceFinderClean_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         CleanUp()
     End Sub
@@ -304,12 +309,6 @@ Public Class frmDeviceFinderClean
     '// on load
     Private Sub frmDeviceFinder_Load(sender As Object, e As EventArgs) Handles Me.Load
         Init()
-    End Sub
-
-    '// on exit
-    Private Sub Form1_HandleDestroyed(sender As Object, e As EventArgs) Handles Me.HandleDestroyed
-        'Me.deviceTree.Nodes.Add(Me.UPnpRoot)
-
     End Sub
 
     '// on GUI resize
@@ -688,5 +687,20 @@ Public Class frmDeviceFinderClean
 
     Private Sub btnPause_Click(sender As Object, e As EventArgs) Handles btnPause.Click
         player.Pause()
+    End Sub
+
+    
+    Private Sub mnuGo_Click(sender As Object, e As EventArgs) Handles mnuGo.Click
+        If My.Settings.SavedDevices IsNot Nothing Then
+            If My.Settings.SavedDevices.Count = 0 Then
+                'disc.BeginNetworkScan()
+                'Else
+                '    disc.LoadSettings()
+            End If
+            'Else
+        Else
+
+        End If
+        disc.BeginNetworkScan()
     End Sub
 End Class

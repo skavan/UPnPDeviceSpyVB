@@ -1,5 +1,6 @@
 ﻿
 Imports OpenSource.UPnP
+Imports OpenSource.Utilities
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading
@@ -53,7 +54,10 @@ Public Class Player
     Protected Overrides Sub Finalize()
 
         If positionTimer IsNot Nothing Then positionTimer.Dispose()
-        AVTransport.UnSubscribe(Nothing)
+        If AVTransport IsNot Nothing Then
+            AVTransport.UnSubscribe(Nothing)
+        End If
+
         MyBase.Finalize()
     End Sub
 
@@ -71,7 +75,8 @@ Public Class Player
 
         'Console.WriteLine("LastChange from {0}", UUID);
         Dim newState As String = sender.Value
-        Debug.Print("AVTRANSPORT CALLBACK" & newState)
+        'Debug.Print("AVTRANSPORT CALLBACK" & newState)
+        EventLogger.Log(Me, EventLogEntryType.Error, "Incoming Event: " & sender.Name & " | " & newState)
         'Console.WriteLine(newState);
         ParseChangeXML(newState)
     End Sub
@@ -126,7 +131,11 @@ Public Class Player
             Case "PLAYING"
                 StartPolling()
             Case "PAUSED_PLAYBACK", "PAUSED", "STOPPED"
-                positionTimer.Change(0, Timeout.Infinite)
+                If positionTimer IsNot Nothing Then
+                    '// suspend timer if its running
+                    positionTimer.Change(0, Timeout.Infinite)
+                End If
+
         End Select
         Debug.Print("RAISING EVENT 2")
         ' every time we have got a state change, do a PositionInfo
@@ -171,7 +180,7 @@ Public Class Player
         End Try
 
         CurrentState.LastStateChange = DateTime.Now
-
+        EventLogger.Log(Me, EventLogEntryType.Error, "Event Processed.")
         RaiseEvent StateChanged(Me)
 
     End Sub
@@ -643,6 +652,7 @@ Public Class SonosItem
     Public Overridable Property DIDL() As SonosDIDL
 
     Public Shared Function Parse(xmlString As String) As IList(Of SonosItem)
+
         Dim xml = XElement.Parse(xmlString)
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
         Dim dc As XNamespace = "http://purl.org/dc/elements/1.1/"
