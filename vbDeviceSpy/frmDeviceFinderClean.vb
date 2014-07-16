@@ -619,8 +619,16 @@ Public Class frmDeviceFinderClean
         propGrid1.SelectedObject = obj
     End Sub
 
-    Private Sub propGrid1_Click(sender As Object, e As EventArgs) Handles propGrid1.Click
-        Dim item As Object = propGrid1.SelectedGridItem
-        propGrid2.SelectedObject = item
+    Private Sub propGrid1_Click(sender As Object, e As EventArgs) Handles propGrid1.SelectedGridItemChanged
+        Dim item As Object = propGrid1.SelectedGridItem.Value
+        If item IsNot Nothing Then
+            Try
+                propGrid2.SelectedObject = item
+
+            Catch ex As Exception
+                Debug.Print("Invalid Property")
+            End Try
+        End If
+
     End Sub
 End Class

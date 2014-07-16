@@ -31,7 +31,7 @@ Public Class Player
 
     Public Event StateChanged As Action(Of Player)
 
-#Region "Initialize System"
+#Region "Initialize & Cleanup System"
 
     Private Sub SubscribeToEvents()
 
@@ -45,8 +45,14 @@ Public Class Player
         SubscribeToEvents()
     End Sub
 
+    Protected Overrides Sub Finalize()
+        positionTimer.Dispose()
+        AVTransport.UnSubscribe(Nothing)
+        MyBase.Finalize()
+    End Sub
+
 #End Region
-    
+
 #Region "Callbacks"
 
     Private Sub HandleOnServiceSubscribe(sender As UPnPService, success As Boolean)
@@ -56,13 +62,32 @@ Public Class Player
     End Sub
 
     Private Sub ChangeTriggered(sender As UPnPStateVariable, value As Object)
+
         'Console.WriteLine("LastChange from {0}", UUID);
         Dim newState As String = sender.Value
+        Debug.Print("AVTRANSPORT CALLBACK" & newState)
         'Console.WriteLine(newState);
         ParseChangeXML(newState)
     End Sub
 
 #End Region
+    
+
+    Private Function GetAttributeValue(instance As XElement, elementName As XName, attrName As String) As String
+        Dim element As XElement = instance.Element(elementName)
+        If element IsNot Nothing Then
+            Dim attr As XAttribute = element.Attribute(attrName)
+            If attr IsNot Nothing Then
+                Return attr.Value
+            Else
+                Debug.Print("ATTRIBUTE NOT FOUND: " & elementName.ToString & "-" & attrName)
+            End If
+        Else
+            Debug.Print("ELEMENT not found:" & elementName.ToString)
+        End If
+
+        Return ""
+    End Function
 
     Private Sub ParseChangeXML(newState As String)
         Dim xEvent As XElement = XElement.Parse(newState)
@@ -71,32 +96,35 @@ Public Class Player
 
         Dim instance As XElement = xEvent.Element(ns + "InstanceID")
 
-        ' We can receive other types of change events here.
-        If instance.Element(ns + "TransportState") Is Nothing Then
+
+        ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
+        If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
+            Debug.Print("ERROR")
             Return
         End If
 
-        Dim preliminaryState = New PlayerState() With { _
-            .TransportState = instance.Element(ns + "TransportState").Attribute("val").Value, _
-            .NumberOfTracks = instance.Element(ns + "NumberOfTracks").Attribute("val").Value, _
-            .CurrentTrack = instance.Element(ns + "CurrentTrack").Attribute("val").Value, _
-            .CurrentTrackDuration = ParseDuration(instance.Element(ns + "CurrentTrackDuration").Attribute("val").Value), _
-            .CurrentTrackMetaData = instance.Element(ns + "CurrentTrackMetaData").Attribute("val").Value, _
-            .NextTrackMetaData = instance.Element(r + "NextTrackMetaData").Attribute("val").Value _
-        }
+        Dim preliminaryState = New PlayerState()
+        With preliminaryState
 
-
+            .TransportState = GetAttributeValue(instance, ns + "TransportState", "val")
+            .NumberOfTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
+            .CurrentTrack = GetAttributeValue(instance, ns + "CurrentTrack", "val")
+            .CurrentTrackDuration = ParseDuration(GetAttributeValue(instance, ns + "CurrentTrackDuration", "val"))
+            .CurrentTrackMetaData = GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val")
+            .NextTrackMetaData = GetAttributeValue(instance, r + "NextTrackMetaData", "val")
+        End With
 
         m_currentState = preliminaryState
-
+        Debug.Print("RAISING EVENT 2")
         ' every time we have got a state change, do a PositionInfo
         Try
             m_playerInfo = GetPositionInfo()
             CurrentState.RelTime = m_playerInfo.RelTime
 
+
             '// if the track has changed - push the current track into the prior slot.
             Dim tempTrack As TrackInfo = TrackInfo.Parse(m_playerInfo.TrackMetaData)
-            
+
             If m_currentTrack.MetaData IsNot Nothing Then
                 If tempTrack.MetaData <> m_currentTrack.MetaData Then
 
@@ -107,17 +135,24 @@ Public Class Player
             Else
                 m_currentTrack = tempTrack
             End If
+
+
             '// the next track info comes in the preliminarystate data
             m_nextTrack = TrackInfo.Parse(m_currentState.NextTrackMetaData)
 
             '// now get the # tracks
             m_mediaInfo = GetMediaInfo()
             '// and fill them in.
+
+
             m_currentTrack.TrackCount = m_mediaInfo.NrOfTracks
             m_nextTrack.TrackCount = m_mediaInfo.NrOfTracks
             m_prevTrack.TrackCount = m_mediaInfo.NrOfTracks
+            m_currentTrack.Duration = m_currentState.CurrentTrackDuration
 
-
+            If GetPlayerStatus() = PlayerStatus.Playing Then
+                StartPolling()
+            End If
             ' void
         Catch generatedExceptionName As Exception
         End Try
@@ -273,7 +308,7 @@ Public Class Player
             Return
         End If
 
-        positionTimer = New Timer(AddressOf UpdateState, Nothing, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(30))
+        positionTimer = New Timer(AddressOf UpdateState, Nothing, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1))
     End Sub
 
     Private Sub UpdateState(state As Object)
@@ -317,10 +352,10 @@ Public Class Player
         Select Case DirectCast(arguments(1).DataValue, String)
             Case "PLAYING"
                 Return PlayerStatus.Playing
-                Exit Select
+
             Case "PAUSED"
                 Return PlayerStatus.Paused
-                Exit Select
+
             Case Else
                 Return PlayerStatus.Stopped
         End Select
@@ -534,7 +569,7 @@ Public Class PlayerState
     Public Property LastStateChange() As DateTime
     Public Property RelTime() As TimeSpan
     Public Property NextTrackMetaData() As String
-  
+
 End Class
 
 Public Class TrackHolder
@@ -546,7 +581,7 @@ Public Class SonosItem
 
     Public Overridable Property Track() As TrackHolder
     Public Overridable Property DIDL() As SonosDIDL
-        
+
     Public Shared Function Parse(xmlString As String) As IList(Of SonosItem)
         Dim xml = XElement.Parse(xmlString)
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
@@ -634,7 +669,7 @@ Public Class PlayerInfo
 End Class
 
 Public Class SonosDIDL
-    
+
     Public Property AlbumArtURI() As String
     Public Property Title() As String
     Public Property Artist() As String
@@ -673,22 +708,30 @@ End Class
 
 Public Class TrackInfo
 
-    Public Property AlbumArtURI() As String
+
     Public Property AlbumArtist As String
+    Public Property Title As String
+    Public Property Artist As String
+    Public Property Album As String
+    Public Property Duration As TimeSpan
+
+    Public Property AlbumArtURI As String
+    Public Property TrackNumber As String
+    Public Property TrackCount As String
+    Public Property Genre As String
+    Public Property AlbumDate As String
+
     Public Property ItemClass As String
     Public Property StreamContent As String
     Public Property FileURL As String
-    Public Property TrackNumber As String
-    Public Property TrackCount As String
-    Public Property Title() As String
-    Public Property Artist() As String
-    Public Property Album() As String
-    Public Property Uri() As String
-    Public Property Description() As String
+    
+    Public Property Uri As String
+    Public Property Description As String
     Public Property MetaData As String
 
-       
+
     Public Shared Function Parse(xml As String) As TrackInfo
+        If xml = "" Then Return New TrackInfo
         Dim didl = XElement.Parse(xml)
         Return Parse(didl)
     End Function
@@ -701,23 +744,57 @@ Public Class TrackInfo
 
         Dim items = didl.Elements(ns + "item")
 
+
         'Dim list = New List(Of SonosDIDL)()
         Dim response = New TrackInfo
+        If items Is Nothing Then
+            Return response
+        End If
+
         For Each item As XElement In items
 
-            response.AlbumArtURI = item.Element(upnp + "albumArtURI").Value
-            response.Artist = item.Element(dc + "creator").Value
-            response.Title = item.Element(dc + "title").Value
-            response.Album = item.Element(upnp + "album").Value
-            response.AlbumArtist = item.Element(r + "albumArtist").Value
-            response.TrackNumber = item.Element(upnp + "originalTrackNumber").Value
-            response.ItemClass = item.Element(upnp + "class").Value
-            response.StreamContent = item.Element(r + "streamContent").Value
+            response.AlbumArtURI = GetElementValue(item, upnp + "albumArtURI")
+            response.Artist = GetElementValue(item, dc + "creator")
+            response.Title = GetElementValue(item, dc + "title")
+            response.AlbumDate = GetElementValue(item, dc + "date")
+            response.Album = GetElementValue(item, upnp + "album")
+            response.AlbumArtist = GetElementValue(item, r + "albumArtist")
+            response.TrackNumber = GetElementValue(item, upnp + "originalTrackNumber")
+            response.Genre = GetElementValue(item, upnp + "genre")
+            response.ItemClass = GetElementValue(item, upnp + "class")
+            response.StreamContent = GetElementValue(item, r + "streamContent")
             response.MetaData = didl.ToString
+
+            response.Artist = GetElementValue(item, dc + "creator")
+            SetElementFilteredValue(response.AlbumArtist, item, upnp + "artist", "role", "AlbumArtist")
+            SetElementFilteredValue(response.Artist, item, upnp + "artist", "role", "Performer")
         Next
 
         Return response
     End Function
+
+    Private Shared Function GetElementValue(instance As XElement, elementName As XName) As String
+        Dim element As XElement = instance.Element(elementName)
+        If element IsNot Nothing Then
+            Return element.Value
+        Else
+            Debug.Print("ELEMENT not found:" & elementName.ToString)
+            Return ""
+        End If
+    End Function
+
+    Private Shared Sub SetElementFilteredValue(ByRef Value As String, instance As XElement, elementName As XName, attributeName As String, attributeValue As String)
+        For Each element As XElement In instance.Elements(elementName)
+            If element.Attribute(attributeName) IsNot Nothing Then
+                If element.Attribute(attributeName).Value = attributeValue Then
+                    Value = element.Value
+                End If
+            End If
+
+        Next
+
+    End Sub
+
 End Class
 
 Public Class MediaInfo
