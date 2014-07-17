@@ -114,12 +114,15 @@ Public Class Player
         Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
         Dim instance As XElement = xEvent.Element(ns + "InstanceID")
 
+        EventLogger.Log(Me, EventLogEntryType.Information, "ProcessChangeEvent Begun: " & newState)
 
         ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
         If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
             EventLogger.Log(Me, EventLogEntryType.Error, "ERROR in ParseChangeXML" & instance.Value)
             'Return
         End If
+
+
 
         'Dim preliminaryState = New PlayerState()
         'With preliminaryState
@@ -134,30 +137,37 @@ Public Class Player
         'CurrentState.LastStateChange = DateTime.Now
         '//Deal with the preliminary EventChangeData - TO DO -- are we missing anything?
 
+
         TransportInfo.CurrentTransportState = GetTransportState(GetAttributeValue(instance, ns + "TransportState", "val"))
-        MediaInfo.NrTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
-        PositionInfo.TrackIndex = GetAttributeValue(instance, ns + "CurrentTrack", "val")
+
+        If GetAttributeValue(instance, ns + "NumberOfTracks", "val") <> "" Then
+            MediaInfo.NrTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
+        End If
+
+        If GetAttributeValue(instance, ns + "CurrentTrack", "val") <> "" Then
+            PositionInfo.TrackIndex = GetAttributeValue(instance, ns + "CurrentTrack", "val")
+        End If
+
         PositionInfo.TrackDuration = ParseDuration(GetAttributeValue(instance, ns + "CurrentTrackDuration", "val"))
+
         CurrentTrack = TrackInfo.Parse(GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val"), Device.BaseURL.ToString)
+
         PositionInfo.TrackMetaData = GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val")
+
         NextTrack = TrackInfo.Parse(GetAttributeValue(instance, r + "NextTrackMetaData", "val"), Device.BaseURL.ToString)
 
-        'Select Case TransportInfo.CurrentTransportState
-        '    Case eTransportState.Playing
-        '        StartPolling()
-        '    Case Else
-        '        StopPolling()
-        'End Select
+        EventLogger.Log(Me, EventLogEntryType.Information, "Processed EventChange Data (presuming its the full track related XML) " & newState)
 
         Try
-
-
             '// the core request with all the track data
             PositionInfo = GetPositionInfo()
             '// now get the MediaInfo object (most usefule for #tracks)
             MediaInfo = GetMediaInfo()
             '// transport state (playing etc..) and status (OK etc...)
             TransportInfo = GetTransportInfo()
+
+            EventLogger.Log(Me, EventLogEntryType.Information, "TransportState: " & TransportInfo.CurrentTransportState)
+
 
             '// deal with TrackInfo stuff
             '// if the track has changed - push the current track into the prior slot.
@@ -184,12 +194,13 @@ Public Class Player
                 StopPolling()
             End If
 
-        Catch generatedExceptionName As Exception
-            EventLogger.Log(Me, EventLogEntryType.Error, "A serious ParseChangeXML error has occurred: " & generatedExceptionName.Message)
+        Catch ex As Exception
+            EventLogger.Log(Me, EventLogEntryType.Error, "A serious ParseChangeXML error has occurred: " & ex.Message)
         End Try
 
         EventLogger.Log(Me, EventLogEntryType.Information, "Event Processed.")
         RaiseEvent StateChanged(Me)
+
 
     End Sub
 
@@ -298,11 +309,11 @@ Public Class Player
         End Get
     End Property
 
-    Public Property PositionInfo As cPositionInfo
+    Public Property PositionInfo As cPositionInfo = New cPositionInfo
 
-    Public Property MediaInfo As cMediaInfo
+    Public Property MediaInfo As cMediaInfo = New cMediaInfo
 
-    Public Property TransportInfo As cTransportInfo
+    Public Property TransportInfo As cTransportInfo = New cTransportInfo
 
     Public ReadOnly Property CurrentState() As eTransportState
         Get
@@ -316,11 +327,11 @@ Public Class Player
         End Get
     End Property
 
-    Public Property PreviousTrack As TrackInfo
+    Public Property PreviousTrack As TrackInfo = New TrackInfo
 
-    Public Property CurrentTrack As TrackInfo
+    Public Property CurrentTrack As TrackInfo = New TrackInfo
 
-    Public Property NextTrack As TrackInfo
+    Public Property NextTrack As TrackInfo = New TrackInfo
 
     Public ReadOnly Property CurrentTime As TimeSpan
         Get
@@ -617,6 +628,8 @@ Public Class Player
                 Return eTransportState.NoMediaPresent
             Case "TRANSITIONING"
                 Return eTransportState.Paused
+            Case ""
+                Return eTransportState.Stopped
             Case Else
                 Throw New System.Exception("Invalid Transport State Variable: " & strState)
                 Return eTransportState.Stopped
@@ -631,6 +644,8 @@ Public Class Player
                 Return eTransportStatus.OK
             Case "ERROR_OCCURRED"
                 Return eTransportStatus.ERROR
+            Case ""
+                Return eTransportStatus.UNKNOWN
             Case Else
                 Throw New System.Exception("Invalid Transport Status Variable: " & strStatus)
                 Return eTransportStatus.UNKNOWN

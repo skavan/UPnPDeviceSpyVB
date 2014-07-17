@@ -33,9 +33,9 @@ Partial Class debugForm
         Me.btnPause = New System.Windows.Forms.ToolStripButton()
         Me.btnClear = New System.Windows.Forms.ToolStripButton()
         Me.btnManaged = New System.Windows.Forms.ToolStripButton()
+        Me.btnAll = New System.Windows.Forms.ToolStripButton()
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.StatusStrip1 = New System.Windows.Forms.StatusStrip()
-        Me.btnAll = New System.Windows.Forms.ToolStripButton()
         CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SplitContainer1.Panel1.SuspendLayout()
         Me.SplitContainer1.Panel2.SuspendLayout()
@@ -172,8 +172,19 @@ Partial Class debugForm
         Me.btnManaged.Image = CType(resources.GetObject("btnManaged.Image"), System.Drawing.Image)
         Me.btnManaged.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.btnManaged.Name = "btnManaged"
-        Me.btnManaged.Size = New System.Drawing.Size(198, 29)
+        Me.btnManaged.Size = New System.Drawing.Size(132, 29)
         Me.btnManaged.Text = "Managed Devices Only"
+        '
+        'btnAll
+        '
+        Me.btnAll.AutoSize = False
+        Me.btnAll.CheckOnClick = True
+        Me.btnAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
+        Me.btnAll.Image = CType(resources.GetObject("btnAll.Image"), System.Drawing.Image)
+        Me.btnAll.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.btnAll.Name = "btnAll"
+        Me.btnAll.Size = New System.Drawing.Size(70, 29)
+        Me.btnAll.Text = "All"
         '
         'RichTextBox1
         '
@@ -195,22 +206,9 @@ Partial Class debugForm
         Me.StatusStrip1.TabIndex = 0
         Me.StatusStrip1.Text = "StatusStrip1"
         '
-        'btnAll
-        '
-        Me.btnAll.AutoSize = False
-        Me.btnAll.Checked = True
-        Me.btnAll.CheckOnClick = True
-        Me.btnAll.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.btnAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        Me.btnAll.Image = CType(resources.GetObject("btnAll.Image"), System.Drawing.Image)
-        Me.btnAll.ImageTransparentColor = System.Drawing.Color.Magenta
-        Me.btnAll.Name = "btnAll"
-        Me.btnAll.Size = New System.Drawing.Size(70, 29)
-        Me.btnAll.Text = "All"
-        '
         'debugForm
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(11.0!, 28.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(936, 734)
         Me.Controls.Add(Me.SplitContainer1)
