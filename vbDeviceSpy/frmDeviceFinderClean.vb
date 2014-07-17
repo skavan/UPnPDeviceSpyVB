@@ -74,18 +74,19 @@ Public Class frmDeviceFinderClean
             Me.ManagedTree.Nodes.Add(root)
         Next
         
+        debugForm.Show()
+        'InstanceTracker.Enabled = True
+        'InstanceTracker.Display()
 
-        InstanceTracker.Enabled = True
-        InstanceTracker.Display()
-
-        EventLogger.ShowAll = True
+        'EventLogger.ShowAll = True
 
         GuiResizing()
     End Sub
 
     Private Sub CleanUp()
-        InstanceTracker.Enabled = False
-        InstanceTracker.ActiveForm.Close()
+        'InstanceTracker.Enabled = False
+        'InstanceTracker.ActiveForm.Close()
+
         player = Nothing
         Debug.Print("Exiting.....")
         disc.SaveSettings()
@@ -411,6 +412,10 @@ Public Class frmDeviceFinderClean
     Private Sub ActivatePlayerMenu_Click(sender As Object, e As EventArgs) Handles ActivatePlayerMenu.Click
         Dim menuItem As MenuItem = sender
         player.SetDevice(menuItem.Tag)
+        If debugForm IsNot Nothing Then
+            debugForm.ipFilter = menuItem.Tag.RemoteEndpoint.Address.ToString
+        End If
+
 
     End Sub
 

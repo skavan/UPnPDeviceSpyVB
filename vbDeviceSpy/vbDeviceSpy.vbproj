@@ -71,6 +71,12 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="debugForm.Designer.vb">
+      <DependentUpon>debugForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="debugForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="discovery.vb" />
     <Compile Include="Form1.vb">
       <SubType>Form</SubType>
@@ -117,6 +123,9 @@
     <Compile Include="savedSettings.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="debugForm.resx">
+      <DependentUpon>debugForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.vb</DependentUpon>
     </EmbeddedResource>

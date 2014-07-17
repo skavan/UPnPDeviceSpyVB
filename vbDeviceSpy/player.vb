@@ -508,7 +508,8 @@ Public Class Player
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         arguments(1) = New UPnPArgument("Speed", "1")
         AVTransport.InvokeAsync("Play", arguments)
-        positionTimer.Change(0, 1000)
+        'positionTimer.Change(0, 1000)
+
         'StartPolling()
     End Sub
 
