@@ -14,6 +14,7 @@ Public Class debugForm
 
     Private Sub debugForm_Load(sender As Object, e As EventArgs) Handles Me.Load
         EventLogger.Enabled = True
+        EventLogger.ShowAll = True
         AddHandler EventLogger.OnEvent, AddressOf eventLogger_OnEvent
 
         dataTable.Columns.Add("TimeStamp", GetType(Date))
@@ -43,31 +44,39 @@ Public Class debugForm
 
     Private Sub OnEvent(LogType As EventLogEntryType, origin As Object, StackTrace As String, LogMessage As String)
         dataTable.Rows.Add({Now, LogType, origin.ToString, LogMessage, StackTrace})
-        DataGridView1.Rows(0).Selected = True
+        'If LogType = EventLogEntryType.Information Then MsgBox("HEY!")
+        'DataGridView1.Rows(0).Selected = True
     End Sub
 
     Private Function BuildFilter() As String
+        If btnAll.Checked Then Return ""
+
         Dim base As String = "", prefix As String
-        If btnErrors.Checked Then base += "LogType = 1"
+        If btnWarnings.Checked Then base += "(LogType = 1)"
 
         If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnWarnings.Checked Then base += prefix & "LogType = 2"
+        If btnInfo.Checked Then base += prefix & "(LogType = 2)"
 
         If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnInfo.Checked Then base += prefix & "LogType = 4"
+        If btnInfo.Checked Then base += prefix & "(LogType = 4)"
 
         If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnAudit.Checked Then base += prefix & "LogType = 8"
+        If btnAudit.Checked Then base += prefix & "(LogType = 8)"
 
         If btnManaged.Checked Then
-            base = "(" + base + ")"
-            base += " OR (Origin = 'OpenSource.UPnP.UPnPControlPoint' AND LogMessage LIKE '%" & ipFilter & "%')"
+            If base <> "" Then
+                prefix = " OR "
+                base = "(" + base + ")"
+            Else
+                prefix = ""
+            End If
+            base += prefix + "((Origin = 'OpenSource.UPnP.UPnPControlPoint') AND (LogMessage LIKE '%" & ipFilter & "%'))"
         End If
-
+        Debug.Print(base)
         Return base
     End Function
 
-    Private Sub CheckStateChanged(sender As Object, e As EventArgs) Handles btnErrors.CheckStateChanged, btnWarnings.CheckStateChanged, btnAudit.CheckStateChanged, btnInfo.CheckStateChanged
+    Private Sub CheckStateChanged(sender As Object, e As EventArgs) Handles btnErrors.CheckStateChanged, btnWarnings.CheckStateChanged, btnAudit.CheckStateChanged, btnInfo.CheckStateChanged, btnManaged.CheckStateChanged, btnAll.CheckStateChanged
         If dataTable.Rows.Count > 0 Then
             'DataGridView1.DataSource = dataTable.Select(BuildFilter)
             dataView.RowFilter = BuildFilter()
@@ -83,8 +92,8 @@ Public Class debugForm
     Private Sub DataGridView1_SelectionChanged(sender As Object, e As EventArgs) Handles DataGridView1.SelectionChanged
         If dataTable.Rows.Count > 0 Then
             Try
-                Dim r As DataRow = DataGridView1.CurrentRow.DataBoundItem
-
+                Dim r As DataRowView = DataGridView1.CurrentRow.DataBoundItem
+                Debug.Print("COLUMN 1: " & r(1))
                 ShowDetail(r("LogMessage").ToString(), r("StackTrace").ToString())
                 'ShowDetail(DataGridView1.SelectedRows(0).Cells("LogMessage").Value, DataGridView1.SelectedRows(0).Cells("StackTrace").Value)
             Catch ex As Exception
@@ -109,7 +118,10 @@ Public Class debugForm
             If log <> "" Then
                 RichTextBox1.AppendText(log & vbCrLf)
             End If
-            LoadXMLtoBOX(xml)
+
+            Dim tmpDoc As New Xml.XmlDocument
+            tmpDoc.LoadXml(xml)
+            XML_Coloring(RichTextBox1, tmpDoc.ChildNodes, 0)
             RichTextBox1.AppendText(vbCrLf & vbCrLf)
         Else
             RichTextBox1.Select(RichTextBox1.TextLength, 0)
@@ -124,38 +136,67 @@ Public Class debugForm
         RichTextBox1.AppendText(trace)
     End Sub
 
-    Public Sub LoadXMLtoBOX(ByVal strXMLPath As String)
+    Public Sub XML_Coloring(txtBox As RichTextBox, nodelist As XmlNodeList, indent As Integer)
 
-        Dim reader As New XmlTextReader(strXMLPath)
-        While reader.Read()
-            Select Case reader.NodeType
-                Case XmlNodeType.Element
-                    'The node is an element. 
-                    Me.RichTextBox1.SelectionColor = Color.Blue
-                    Me.RichTextBox1.AppendText("<")
-                    Me.RichTextBox1.SelectionColor = Color.Brown
-                    Me.RichTextBox1.AppendText(reader.Name)
-                    Me.RichTextBox1.SelectionColor = Color.Blue
-                    Me.RichTextBox1.AppendText(">")
-                    Exit Select
-                Case XmlNodeType.Text
-                    'Display the text in each element. 
-                    Me.RichTextBox1.SelectionColor = Color.Black
-                    Me.RichTextBox1.AppendText(reader.Value)
-                    Exit Select
-                Case XmlNodeType.EndElement
-                    'Display the end of the element. 
-                    Me.RichTextBox1.SelectionColor = Color.Blue
-                    Me.RichTextBox1.AppendText("</")
-                    Me.RichTextBox1.SelectionColor = Color.Brown
-                    Me.RichTextBox1.AppendText(reader.Name)
-                    Me.RichTextBox1.SelectionColor = Color.Blue
-                    Me.RichTextBox1.AppendText(">")
-                    Me.RichTextBox1.AppendText(vbLf)
-                    Exit Select
-            End Select
-        End While
-        reader.Close()
+        For Each xmlNodeType As XmlNode In nodelist
+
+            With txtBox
+
+                If Not xmlNodeType.NodeType = Xml.XmlNodeType.Element Then
+                    .SelectionIndent = indent
+                    .SelectionColor = Color.Black
+                    .AppendText(xmlNodeType.OuterXml & vbNewLine)
+                    Continue For
+                End If
+
+                Dim xmlNode As Xml.XmlElement = xmlNodeType
+
+                ' Element node
+                .SelectionIndent = indent
+                .SelectionColor = Color.Blue
+                .AppendText("<" & xmlNode.Name)
+
+                ' Load attributes
+                If xmlNode.HasAttributes Then
+                    For Each xmlAttrib As XmlAttribute In xmlNode.Attributes
+                        .SelectionColor = Color.Red
+                        .AppendText(" " & xmlAttrib.Name)
+                        .SelectionColor = Color.Black
+                        .AppendText("=")
+                        .SelectionColor = Color.Purple
+                        .AppendText("""" & xmlAttrib.Value & """")
+                    Next
+                End If
+
+                ' Load child nodes
+                If xmlNode.HasChildNodes Then
+
+                    .SelectionColor = Color.Blue
+                    .AppendText(">")
+
+                    If xmlNode.ChildNodes(0).GetType() Is GetType(XmlText) Then
+                        ' Contains text
+                        .SelectionColor = Color.Black
+                        .AppendText(xmlNode.InnerText)
+                    Else
+                        ' Has child nodes
+                        .AppendText(vbNewLine)
+                        XML_Coloring(txtBox, xmlNode.ChildNodes, indent + 20)
+
+                    End If
+
+                    .SelectionIndent = indent
+                    .SelectionColor = Color.Blue
+                    .AppendText("</" & xmlNode.Name & ">" & vbNewLine)
+                Else
+                    .SelectionColor = Color.Blue
+                    .AppendText(" />" & vbNewLine)
+
+                End If
+
+            End With
+
+        Next
 
     End Sub
 
@@ -165,7 +206,7 @@ Public Class debugForm
     End Sub
 
     Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
-
+        dataTable.Rows.Clear()
         Debug.Print(BuildFilter)
     End Sub
 

@@ -27,6 +27,7 @@ Partial Class frmDeviceFinderClean
         Dim ListViewItem1 As System.Windows.Forms.ListViewItem = New System.Windows.Forms.ListViewItem(New String() {""}, -1, System.Drawing.SystemColors.WindowText, System.Drawing.SystemColors.Window, New System.Drawing.Font("Microsoft Sans Serif", 8.25!))
         Me.mainMenu = New System.Windows.Forms.MainMenu(Me.components)
         Me.menuItem1 = New System.Windows.Forms.MenuItem()
+        Me.mnuGo = New System.Windows.Forms.MenuItem()
         Me.manuallyAddDeviceMenuItem = New System.Windows.Forms.MenuItem()
         Me.menuItem15 = New System.Windows.Forms.MenuItem()
         Me.menuItem12 = New System.Windows.Forms.MenuItem()
@@ -129,7 +130,6 @@ Partial Class frmDeviceFinderClean
         Me.btnNext = New System.Windows.Forms.Button()
         Me.btnPlay = New System.Windows.Forms.Button()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.mnuGo = New System.Windows.Forms.MenuItem()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -187,6 +187,11 @@ Partial Class frmDeviceFinderClean
         Me.menuItem1.Index = 0
         Me.menuItem1.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuGo, Me.manuallyAddDeviceMenuItem, Me.menuItem15, Me.menuItem12, Me.menuItem9, Me.menuItem4, Me.menuItem13, Me.menuItem14, Me.menuItem2})
         Me.menuItem1.Text = "&File"
+        '
+        'mnuGo
+        '
+        Me.mnuGo.Index = 0
+        Me.mnuGo.Text = "Go"
         '
         'manuallyAddDeviceMenuItem
         '
@@ -1050,11 +1055,6 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
-        '
-        'mnuGo
-        '
-        Me.mnuGo.Index = 0
-        Me.mnuGo.Text = "Go"
         '
         'frmDeviceFinderClean
         '

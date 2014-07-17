@@ -74,7 +74,11 @@ Public Class frmDeviceFinderClean
             Me.ManagedTree.Nodes.Add(root)
         Next
         
-        debugForm.Show()
+        'debugForm.Show()
+        ShowDebug()
+        'Dim frm As debugForm = debugForm
+        'Application.Run(debugForm)
+
         'InstanceTracker.Enabled = True
         'InstanceTracker.Display()
 
@@ -98,7 +102,11 @@ Public Class frmDeviceFinderClean
 
     End Sub
 
-
+    Private Sub ShowDebug()
+        Dim myDebugForm As New debugForm 'splashform is the form you want to be seperate from main ui thread
+        Dim myThread As New Threading.Thread(AddressOf debugForm.ShowDialog)
+        myThread.Start()
+    End Sub
 #End Region
 
 #Region "Callbacks"
@@ -112,7 +120,7 @@ Public Class frmDeviceFinderClean
             Case discovery.eDeviceDiscoveryEvent.deviceRemoved
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {device, False})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceAdded
-                EventLogger.Log(Me, EventLogEntryType.Error, device.FriendlyName & " " & deviceChangeEvent.ToString)
+                EventLogger.Log(Me, EventLogEntryType.Information, device.FriendlyName & " " & deviceChangeEvent.ToString)
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, True})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceRemoved
                 MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), {device, True})
@@ -651,10 +659,10 @@ Public Class frmDeviceFinderClean
 
 
         'End If
-        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentState.RelTime, obj.PlayerInfo.TrackDuration)
-        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentState.RelTime.TotalSeconds, obj.PlayerInfo.TrackDuration.TotalSeconds, obj.CurrentState.RelTime.TotalSeconds / obj.PlayerInfo.TrackDuration.TotalSeconds))
-        If obj.PlayerInfo.TrackDuration.TotalSeconds > obj.CurrentState.RelTime.TotalSeconds Then
-            pbDuration.Value = (obj.CurrentState.RelTime.TotalSeconds / obj.PlayerInfo.TrackDuration.TotalSeconds) * 100
+        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentState.RelTime, obj.PositionInfo.TrackDuration)
+        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentState.RelTime.TotalSeconds, obj.PositionInfo.TrackDuration.TotalSeconds, obj.CurrentState.RelTime.TotalSeconds / obj.PositionInfo.TrackDuration.TotalSeconds))
+        If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentState.RelTime.TotalSeconds Then
+            pbDuration.Value = (obj.CurrentState.RelTime.TotalSeconds / obj.PositionInfo.TrackDuration.TotalSeconds) * 100
         End If
 
         lblDevice.Text = player.Device.FriendlyName
@@ -707,5 +715,9 @@ Public Class frmDeviceFinderClean
 
         End If
         disc.BeginNetworkScan()
+    End Sub
+
+    Private Sub lblDevice_Click(sender As Object, e As EventArgs) Handles lblDevice.Click
+        player.StopPolling()
     End Sub
 End Class

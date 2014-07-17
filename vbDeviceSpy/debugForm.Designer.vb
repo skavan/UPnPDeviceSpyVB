@@ -35,6 +35,7 @@ Partial Class debugForm
         Me.btnManaged = New System.Windows.Forms.ToolStripButton()
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.StatusStrip1 = New System.Windows.Forms.StatusStrip()
+        Me.btnAll = New System.Windows.Forms.ToolStripButton()
         CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SplitContainer1.Panel1.SuspendLayout()
         Me.SplitContainer1.Panel2.SuspendLayout()
@@ -70,22 +71,22 @@ Partial Class debugForm
         Me.DataGridView1.AllowUserToDeleteRows = False
         Me.DataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.DataGridView1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.DataGridView1.Location = New System.Drawing.Point(0, 25)
+        Me.DataGridView1.Location = New System.Drawing.Point(0, 32)
         Me.DataGridView1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.DataGridView1.Name = "DataGridView1"
         Me.DataGridView1.ReadOnly = True
         Me.DataGridView1.RowHeadersVisible = False
         Me.DataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
-        Me.DataGridView1.Size = New System.Drawing.Size(936, 439)
+        Me.DataGridView1.Size = New System.Drawing.Size(936, 432)
         Me.DataGridView1.TabIndex = 1
         '
         'ToolStrip1
         '
-        Me.ToolStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.btnWarnings, Me.btnErrors, Me.btnInfo, Me.btnAudit, Me.btnPause, Me.btnClear, Me.btnManaged})
+        Me.ToolStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.btnWarnings, Me.btnErrors, Me.btnInfo, Me.btnAudit, Me.btnPause, Me.btnClear, Me.btnManaged, Me.btnAll})
         Me.ToolStrip1.Location = New System.Drawing.Point(0, 0)
         Me.ToolStrip1.Name = "ToolStrip1"
         Me.ToolStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System
-        Me.ToolStrip1.Size = New System.Drawing.Size(936, 25)
+        Me.ToolStrip1.Size = New System.Drawing.Size(936, 32)
         Me.ToolStrip1.TabIndex = 0
         Me.ToolStrip1.Text = "ToolStrip1"
         '
@@ -171,7 +172,7 @@ Partial Class debugForm
         Me.btnManaged.Image = CType(resources.GetObject("btnManaged.Image"), System.Drawing.Image)
         Me.btnManaged.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.btnManaged.Name = "btnManaged"
-        Me.btnManaged.Size = New System.Drawing.Size(132, 22)
+        Me.btnManaged.Size = New System.Drawing.Size(198, 29)
         Me.btnManaged.Text = "Managed Devices Only"
         '
         'RichTextBox1
@@ -194,9 +195,22 @@ Partial Class debugForm
         Me.StatusStrip1.TabIndex = 0
         Me.StatusStrip1.Text = "StatusStrip1"
         '
+        'btnAll
+        '
+        Me.btnAll.AutoSize = False
+        Me.btnAll.Checked = True
+        Me.btnAll.CheckOnClick = True
+        Me.btnAll.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.btnAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
+        Me.btnAll.Image = CType(resources.GetObject("btnAll.Image"), System.Drawing.Image)
+        Me.btnAll.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.btnAll.Name = "btnAll"
+        Me.btnAll.Size = New System.Drawing.Size(70, 29)
+        Me.btnAll.Text = "All"
+        '
         'debugForm
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(11.0!, 28.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(936, 734)
         Me.Controls.Add(Me.SplitContainer1)
@@ -228,4 +242,5 @@ Partial Class debugForm
     Friend WithEvents btnClear As System.Windows.Forms.ToolStripButton
     Friend WithEvents btnPause As System.Windows.Forms.ToolStripButton
     Friend WithEvents btnManaged As System.Windows.Forms.ToolStripButton
+    Friend WithEvents btnAll As System.Windows.Forms.ToolStripButton
 End Class
