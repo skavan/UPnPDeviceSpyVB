@@ -706,15 +706,15 @@ Public Class frmDeviceFinderClean
     Private Sub mnuGo_Click(sender As Object, e As EventArgs) Handles mnuGo.Click
         If My.Settings.SavedDevices IsNot Nothing Then
             If My.Settings.SavedDevices.Count = 0 Then
-                'disc.BeginNetworkScan()
-                'Else
-                '    disc.LoadSettings()
+                disc.BeginNetworkScan()
+            Else
+                disc.LoadSettings()
             End If
             'Else
         Else
 
         End If
-        disc.BeginNetworkScan()
+        'disc.BeginNetworkScan()
     End Sub
 
     Private Sub lblDevice_Click(sender As Object, e As EventArgs) Handles lblDevice.Click

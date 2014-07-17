@@ -52,10 +52,10 @@ Public Class debugForm
         If btnAll.Checked Then Return ""
 
         Dim base As String = "", prefix As String
-        If btnWarnings.Checked Then base += "(LogType = 1)"
+        If btnErrors.Checked Then base += "(LogType = 1)"
 
         If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnInfo.Checked Then base += prefix & "(LogType = 2)"
+        If btnWarnings.Checked Then base += prefix & "(LogType = 2)"
 
         If base <> "" Then prefix = " OR " Else prefix = ""
         If btnInfo.Checked Then base += prefix & "(LogType = 4)"
@@ -207,7 +207,7 @@ Public Class debugForm
 
     Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
         dataTable.Rows.Clear()
-        Debug.Print(BuildFilter)
+        Debug.Print(dataView.RowFilter)
     End Sub
 
     Private Sub btnPause_MouseUp(sender As Object, e As MouseEventArgs) Handles btnPause.MouseUp

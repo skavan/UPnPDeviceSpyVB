@@ -73,7 +73,7 @@ Public Class Player
 
     Private Sub ChangeTriggered(sender As UPnPStateVariable, value As Object)
         Dim newState As String = sender.Value
-        EventLogger.Log(Me, EventLogEntryType.Information, "Incoming Event: " & sender.Name & " | " & newState)
+        EventLogger.Log(Me, EventLogEntryType.Warning, "Incoming Event: " & sender.Name & " | " & newState)
         ProcessEventChangeXML(newState)
     End Sub
 
@@ -83,7 +83,7 @@ Public Class Player
             Exit Sub
         End If
 
-        If CurrentStatus <> eTransportState.Playing Then
+        If CurrentState <> eTransportState.Playing Then
             Return
         End If
 
@@ -91,7 +91,8 @@ Public Class Player
     End Sub
 
     Public Sub StopPolling()
-        positionTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite)
+        '// stop the timer
+        If positionTimer IsNot Nothing Then positionTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite)
     End Sub
 
     Private Sub OnTimerUpdatePlayerState(state As Object)
@@ -114,29 +115,13 @@ Public Class Player
         Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
         Dim instance As XElement = xEvent.Element(ns + "InstanceID")
 
-        EventLogger.Log(Me, EventLogEntryType.Information, "ProcessChangeEvent Begun: " & newState)
+        EventLogger.Log(Me, EventLogEntryType.Warning, "ProcessChangeEvent Begun: " & newState)
 
         ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
-        If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
-            EventLogger.Log(Me, EventLogEntryType.Error, "ERROR in ParseChangeXML" & instance.Value)
-            'Return
-        End If
-
-
-
-        'Dim preliminaryState = New PlayerState()
-        'With preliminaryState
-        '.TransportState = GetAttributeValue(instance, ns + "TransportState", "val")
-        '.NumberOfTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
-        '.CurrentTrack = GetAttributeValue(instance, ns + "CurrentTrack", "val")
-        '.CurrentTrackDuration = ParseDuration(GetAttributeValue(instance, ns + "CurrentTrackDuration", "val"))
-        '.CurrentTrackMetaData = GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val")
-        '.NextTrackMetaData = GetAttributeValue(instance, r + "NextTrackMetaData", "val")
-        'End With
-        'm_currentState = preliminaryState
-        'CurrentState.LastStateChange = DateTime.Now
-        '//Deal with the preliminary EventChangeData - TO DO -- are we missing anything?
-
+        'If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
+        '    EventLogger.Log(Me, EventLogEntryType.Error, "ERROR in ParseChangeXML" & instance.Value)
+        '    'Return
+        'End If
 
         TransportInfo.CurrentTransportState = GetTransportState(GetAttributeValue(instance, ns + "TransportState", "val"))
 
@@ -156,7 +141,7 @@ Public Class Player
 
         NextTrack = TrackInfo.Parse(GetAttributeValue(instance, r + "NextTrackMetaData", "val"), Device.BaseURL.ToString)
 
-        EventLogger.Log(Me, EventLogEntryType.Information, "Processed EventChange Data (presuming its the full track related XML) " & newState)
+        'EventLogger.Log(Me, EventLogEntryType.Warning, "Processed EventChange Data" & newState)
 
         Try
             '// the core request with all the track data
@@ -166,7 +151,7 @@ Public Class Player
             '// transport state (playing etc..) and status (OK etc...)
             TransportInfo = GetTransportInfo()
 
-            EventLogger.Log(Me, EventLogEntryType.Information, "TransportState: " & TransportInfo.CurrentTransportState)
+            EventLogger.Log(Me, EventLogEntryType.Warning, "TransportState: " & TransportInfo.CurrentTransportState)
 
 
             '// deal with TrackInfo stuff
@@ -180,14 +165,14 @@ Public Class Player
                 CurrentTrack = tempTrack        '// silly, since in theory they are the same...
             End If
             CurrentTrack.TrackCount = MediaInfo.NrTracks
-
+            EventLogger.Log(Me, EventLogEntryType.Warning, "Num Tracks: " & MediaInfo.NrTracks)
             '// Let's try and get the next track info information. 1st choice is from the newly available media info object. 2nd choice is from the EventChange MetaData
             If MediaInfo.NextURIMetaData <> NOT_IMPLEMENTED Then
                 NextTrack = TrackInfo.Parse(MediaInfo.NextURIMetaData, Device.BaseURL.ToString)
             ElseIf GetAttributeValue(instance, r + "NextTrackMetaData", "val") <> "NOT_IMPLEMENTED" Then
                 NextTrack = TrackInfo.Parse(GetAttributeValue(instance, r + "NextTrackMetaData", "val"), Device.BaseURL.ToString)
             End If
-
+            'EventLogger.Log(Me, EventLogEntryType.Warning, "Ready to poll")
             If TransportInfo.CurrentTransportState = eTransportState.Playing Then
                 StartPolling()
             Else
@@ -195,10 +180,10 @@ Public Class Player
             End If
 
         Catch ex As Exception
-            EventLogger.Log(Me, EventLogEntryType.Error, "A serious ParseChangeXML error has occurred: " & ex.Message)
+            EventLogger.Log(Me, EventLogEntryType.Error, "A serious ParseChangeXML error has occurred: " & ex.StackTrace & vbCrLf & ex.Message)
         End Try
 
-        EventLogger.Log(Me, EventLogEntryType.Information, "Event Processed.")
+        EventLogger.Log(Me, EventLogEntryType.Warning, "Event Processed.")
         RaiseEvent StateChanged(Me)
 
 
@@ -616,7 +601,7 @@ Public Class Player
 
 #Region "Utility Functions"
     '// given the UPNP string, returns the enum value
-    Shared Function GetTransportState(strState As String) As eTransportState
+    Function GetTransportState(strState As String) As eTransportState
         Select Case strState
             Case "STOPPED"
                 Return eTransportState.Stopped
@@ -631,14 +616,14 @@ Public Class Player
             Case ""
                 Return eTransportState.Stopped
             Case Else
-                Throw New System.Exception("Invalid Transport State Variable: " & strState)
-                Return eTransportState.Stopped
+                EventLogger.Log(Me, EventLogEntryType.Error, "INVALID OR MISSING STATE")
+                Return CurrentState '// return last known value
         End Select
 
     End Function
 
     '// given the UPNP string, returns the enum value
-    Shared Function GetTransportStatus(strStatus As String) As eTransportStatus
+    Function GetTransportStatus(strStatus As String) As eTransportStatus
         Select Case strStatus
             Case "OK"
                 Return eTransportStatus.OK
@@ -647,8 +632,8 @@ Public Class Player
             Case ""
                 Return eTransportStatus.UNKNOWN
             Case Else
-                Throw New System.Exception("Invalid Transport Status Variable: " & strStatus)
-                Return eTransportStatus.UNKNOWN
+                EventLogger.Log(Me, EventLogEntryType.Error, "INVALID OR MISSING STATE")
+                Return CurrentStatus            '// return last known value
 
         End Select
     End Function
@@ -663,18 +648,6 @@ Public Class SearchResult
     Public Property NumberReturned() As UInteger
     Public Property TotalMatches() As UInteger
 End Class
-
-'Public Class PlayerState
-'    Public Property TransportState() As String
-'    Public Property NumberOfTracks() As String
-'    Public Property CurrentTrack() As String
-'    Public Property CurrentTrackDuration() As TimeSpan
-'    Public Property CurrentTrackMetaData() As String
-'    Public Property LastStateChange() As DateTime
-'    Public Property RelTime() As TimeSpan
-'    Public Property NextTrackMetaData() As String
-
-'End Class
 
 Public Class TrackHolder
     Public Property Uri() As String
