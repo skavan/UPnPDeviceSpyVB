@@ -702,7 +702,7 @@ Public Class frmDeviceFinderClean
         player.Pause()
     End Sub
 
-    
+
     Private Sub mnuGo_Click(sender As Object, e As EventArgs) Handles mnuGo.Click
         If My.Settings.SavedDevices IsNot Nothing Then
             If My.Settings.SavedDevices.Count = 0 Then

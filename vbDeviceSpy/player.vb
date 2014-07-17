@@ -38,6 +38,50 @@ Public Class Player
 
     Public Event StateChanged As Action(Of Player)
 
+    Public ReadOnly Property CurrentState() As PlayerState
+        Get
+            Return m_currentState
+        End Get
+    End Property
+
+    Public ReadOnly Property CurrentStatus() As PlayerStatus
+        Get
+            Return m_currentStatus
+        End Get
+    End Property
+
+    Public Property PositionInfo() As cPositionInfo
+
+
+    Public ReadOnly Property MediaInfo() As cMediaInfo
+        Get
+            Return m_mediaInfo
+        End Get
+    End Property
+
+    Public ReadOnly Property PrevTrack As TrackInfo
+        Get
+            Return m_prevTrack
+        End Get
+    End Property
+
+    Public ReadOnly Property CurrentTrack As TrackInfo
+        Get
+            Return m_currentTrack
+        End Get
+    End Property
+
+    Public ReadOnly Property NextTrack As TrackInfo
+        Get
+            Return m_nextTrack
+        End Get
+    End Property
+
+    Public ReadOnly Property BaseUrl() As Uri
+        Get
+            Return Device.BaseURL
+        End Get
+    End Property
 
 #End Region
 
@@ -303,54 +347,7 @@ Public Class Player
         End Get
     End Property
 
-    Public ReadOnly Property CurrentState() As PlayerState
-        Get
-            Return m_currentState
-        End Get
-    End Property
-
-    Public ReadOnly Property CurrentStatus() As PlayerStatus
-        Get
-            Return m_currentStatus
-        End Get
-    End Property
-
-    Public ReadOnly Property PositionInfo() As cPositionInfo
-        Get
-            Return m_positionInfo
-        End Get
-    End Property
-
-    Public ReadOnly Property MediaInfo() As cMediaInfo
-        Get
-            Return m_mediaInfo
-        End Get
-    End Property
-
-    Public ReadOnly Property PrevTrack As TrackInfo
-        Get
-            Return m_prevTrack
-        End Get
-    End Property
-
-    Public ReadOnly Property CurrentTrack As TrackInfo
-        Get
-            Return m_currentTrack
-        End Get
-    End Property
-
-    Public ReadOnly Property NextTrack As TrackInfo
-        Get
-            Return m_nextTrack
-        End Get
-    End Property
-
-    Public ReadOnly Property BaseUrl() As Uri
-        Get
-            Return Device.BaseURL
-        End Get
-    End Property
-
+    
 #End Region
 
 
@@ -856,7 +853,7 @@ Public Class cMediaInfo
             Return m_NrOfTracks
         End Get
         Set(value As UInteger)
-            m_NrOfTracks = Value
+            m_NrOfTracks = value
         End Set
     End Property
     Private m_NrOfTracks As UInteger
