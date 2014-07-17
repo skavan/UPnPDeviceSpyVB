@@ -6,98 +6,49 @@ Imports System.Linq
 Imports System.Threading
 Imports System.Xml.Linq
 
-Public Enum PlayerStatus
+Public Enum eTransportState
     Stopped
     Playing
     Paused
+    Recording
+    NoMediaPresent
 End Enum
 
+Public Enum eTransportStatus
+    OK
+    [ERROR]
+    UNKNOWN
+End Enum
 
 Public Class Player
 
 #Region "Variables & Events"
+    Public Const NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
+
     Private m_mediaRenderer As UPnPDevice
     Private m_avTransport As UPnPService
     Private m_mediaServer As UPnPDevice
     Private m_renderingControl As UPnPService
     Private m_contentDirectory As UPnPService
 
-    Private m_positionInfo As New cPositionInfo
-    Private m_mediaInfo As New cMediaInfo
-
-    Private m_currentState As New PlayerState
-    Private m_currentStatus As New PlayerStatus
-
-
-
-    Private m_currentTrack As New TrackInfo
-    Private m_nextTrack As New TrackInfo
-    Private m_prevTrack As New TrackInfo
     Private positionTimer As Timer
-    Private Shared _missingAlbumArtPath As String = "http://www.kavan.us/musicweb/images/No-album-art300x300.jpg"
 
     Public Event StateChanged As Action(Of Player)
 
-    Public ReadOnly Property CurrentState() As PlayerState
-        Get
-            Return m_currentState
-        End Get
-    End Property
-
-    Public ReadOnly Property CurrentStatus() As PlayerStatus
-        Get
-            Return m_currentStatus
-        End Get
-    End Property
-
-    Public Property PositionInfo() As cPositionInfo
-
-
-    Public ReadOnly Property MediaInfo() As cMediaInfo
-        Get
-            Return m_mediaInfo
-        End Get
-    End Property
-
-    Public ReadOnly Property PrevTrack As TrackInfo
-        Get
-            Return m_prevTrack
-        End Get
-    End Property
-
-    Public ReadOnly Property CurrentTrack As TrackInfo
-        Get
-            Return m_currentTrack
-        End Get
-    End Property
-
-    Public ReadOnly Property NextTrack As TrackInfo
-        Get
-            Return m_nextTrack
-        End Get
-    End Property
-
-    Public ReadOnly Property BaseUrl() As Uri
-        Get
-            Return Device.BaseURL
-        End Get
-    End Property
-
+    
 #End Region
 
 #Region "Initialize & Cleanup System"
-
-    Private Sub SubscribeToEvents()
-
-        If AVTransport Is Nothing Then Exit Sub
-
-        AVTransport.Subscribe(600, AddressOf HandleOnServiceSubscribe)
-    End Sub
 
     Public Sub SetDevice(playerDevice As UPnPDevice)
         Device = playerDevice
         ' Subscribe to LastChange event
         SubscribeToEvents()
+    End Sub
+
+    Private Sub SubscribeToEvents()
+        If AVTransport Is Nothing Then Exit Sub
+        AVTransport.Subscribe(600, AddressOf HandleOnServiceSubscribe)
     End Sub
 
     Protected Overrides Sub Finalize()
@@ -112,7 +63,7 @@ Public Class Player
 
 #End Region
 
-#Region "Callbacks"
+#Region "Callbacks and Polling"
 
     Private Sub HandleOnServiceSubscribe(sender As UPnPService, success As Boolean)
         If Not success Then Exit Sub
@@ -121,18 +72,133 @@ Public Class Player
     End Sub
 
     Private Sub ChangeTriggered(sender As UPnPStateVariable, value As Object)
-
-        'Console.WriteLine("LastChange from {0}", UUID);
         Dim newState As String = sender.Value
-        'Debug.Print("AVTRANSPORT CALLBACK" & newState)
         EventLogger.Log(Me, EventLogEntryType.Information, "Incoming Event: " & sender.Name & " | " & newState)
-        'Console.WriteLine(newState);
-        ParseChangeXML(newState)
+        ProcessEventChangeXML(newState)
+    End Sub
+
+    Public Sub StartPolling()
+        If positionTimer IsNot Nothing Then
+            positionTimer.Change(100, 1000)
+            Exit Sub
+        End If
+
+        If CurrentStatus <> eTransportState.Playing Then
+            Return
+        End If
+
+        positionTimer = New Timer(AddressOf OnTimerUpdatePlayerState, Nothing, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1))
+    End Sub
+
+    Public Sub StopPolling()
+        positionTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite)
+    End Sub
+
+    Private Sub OnTimerUpdatePlayerState(state As Object)
+        PositionInfo = GetPositionInfo()
+        TransportInfo = GetTransportInfo()
+
+        RaiseEvent StateChanged(Me)
+
+        If TransportInfo.CurrentTransportState <> eTransportState.Playing Then StopPolling()
     End Sub
 
 #End Region
 
 #Region "XML Processing Methods"
+
+    '// the main EventChange processor
+    Private Sub ProcessEventChangeXML(newState As String)
+        Dim xEvent As XElement = XElement.Parse(newState)
+        Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/AVT/"
+        Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
+        Dim instance As XElement = xEvent.Element(ns + "InstanceID")
+
+
+        ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
+        If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
+            EventLogger.Log(Me, EventLogEntryType.Error, "ERROR in ParseChangeXML" & instance.Value)
+            'Return
+        End If
+
+        'Dim preliminaryState = New PlayerState()
+        'With preliminaryState
+        '.TransportState = GetAttributeValue(instance, ns + "TransportState", "val")
+        '.NumberOfTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
+        '.CurrentTrack = GetAttributeValue(instance, ns + "CurrentTrack", "val")
+        '.CurrentTrackDuration = ParseDuration(GetAttributeValue(instance, ns + "CurrentTrackDuration", "val"))
+        '.CurrentTrackMetaData = GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val")
+        '.NextTrackMetaData = GetAttributeValue(instance, r + "NextTrackMetaData", "val")
+        'End With
+        'm_currentState = preliminaryState
+        'CurrentState.LastStateChange = DateTime.Now
+        '//Deal with the preliminary EventChangeData - TO DO -- are we missing anything?
+
+        TransportInfo.CurrentTransportState = GetTransportState(GetAttributeValue(instance, ns + "TransportState", "val"))
+        MediaInfo.NrTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
+        PositionInfo.TrackIndex = GetAttributeValue(instance, ns + "CurrentTrack", "val")
+        PositionInfo.TrackDuration = ParseDuration(GetAttributeValue(instance, ns + "CurrentTrackDuration", "val"))
+        CurrentTrack = TrackInfo.Parse(GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val"), Device.BaseURL.ToString)
+        PositionInfo.TrackMetaData = GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val")
+        NextTrack = TrackInfo.Parse(GetAttributeValue(instance, r + "NextTrackMetaData", "val"), Device.BaseURL.ToString)
+
+        'Select Case TransportInfo.CurrentTransportState
+        '    Case eTransportState.Playing
+        '        StartPolling()
+        '    Case Else
+        '        StopPolling()
+        'End Select
+
+        Try
+
+
+            '// the core request with all the track data
+            PositionInfo = GetPositionInfo()
+            '// now get the MediaInfo object (most usefule for #tracks)
+            MediaInfo = GetMediaInfo()
+            '// transport state (playing etc..) and status (OK etc...)
+            TransportInfo = GetTransportInfo()
+
+            '// deal with TrackInfo stuff
+            '// if the track has changed - push the current track into the prior slot.
+            Dim tempTrack As TrackInfo = TrackInfo.Parse(PositionInfo.TrackMetaData, Device.BaseURL.ToString)
+            If CurrentTrack.MetaData <> tempTrack.MetaData Then
+                '// we're playing a new track
+                PreviousTrack = CurrentTrack
+                CurrentTrack = tempTrack
+            Else
+                CurrentTrack = tempTrack        '// silly, since in theory they are the same...
+            End If
+            CurrentTrack.TrackCount = MediaInfo.NrTracks
+
+            '// Let's try and get the next track info information. 1st choice is from the newly available media info object. 2nd choice is from the EventChange MetaData
+            If MediaInfo.NextURIMetaData <> NOT_IMPLEMENTED Then
+                NextTrack = TrackInfo.Parse(MediaInfo.NextURIMetaData, Device.BaseURL.ToString)
+            ElseIf GetAttributeValue(instance, r + "NextTrackMetaData", "val") <> "NOT_IMPLEMENTED" Then
+                NextTrack = TrackInfo.Parse(GetAttributeValue(instance, r + "NextTrackMetaData", "val"), Device.BaseURL.ToString)
+            End If
+
+            If TransportInfo.CurrentTransportState = eTransportState.Playing Then
+                StartPolling()
+            Else
+                StopPolling()
+            End If
+
+        Catch generatedExceptionName As Exception
+            EventLogger.Log(Me, EventLogEntryType.Error, "A serious ParseChangeXML error has occurred: " & generatedExceptionName.Message)
+        End Try
+
+        EventLogger.Log(Me, EventLogEntryType.Information, "Event Processed.")
+        RaiseEvent StateChanged(Me)
+
+    End Sub
+
+    Private Function ParseDuration(value As String) As TimeSpan
+        If String.IsNullOrEmpty(value) Then
+            Return TimeSpan.FromSeconds(0)
+        End If
+        Return TimeSpan.Parse(value)
+    End Function
 
     Private Function GetAttributeValue(instance As XElement, elementName As XName, attrName As String) As String
         Dim element As XElement = instance.Element(elementName)
@@ -149,131 +215,16 @@ Public Class Player
 
         Return ""
     End Function
-
-    Private Sub ParseChangeXML(newState As String)
-        Dim xEvent As XElement = XElement.Parse(newState)
-        Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/AVT/"
-        Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
-
-        Dim instance As XElement = xEvent.Element(ns + "InstanceID")
-
-
-        ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
-        If instance.Element(ns + "CurrentTrackDuration") Is Nothing Then
-            Debug.Print("ERROR")
-            'Return
-        End If
-
-        Dim preliminaryState = New PlayerState()
-        With preliminaryState
-
-            .TransportState = GetAttributeValue(instance, ns + "TransportState", "val")
-            .NumberOfTracks = GetAttributeValue(instance, ns + "NumberOfTracks", "val")
-            .CurrentTrack = GetAttributeValue(instance, ns + "CurrentTrack", "val")
-            .CurrentTrackDuration = ParseDuration(GetAttributeValue(instance, ns + "CurrentTrackDuration", "val"))
-            .CurrentTrackMetaData = GetAttributeValue(instance, ns + "CurrentTrackMetaData", "val")
-            .NextTrackMetaData = GetAttributeValue(instance, r + "NextTrackMetaData", "val")
-        End With
-
-        m_currentState = preliminaryState
-        Select Case m_currentState.TransportState
-            Case "PLAYING"
-                StartPolling()
-            Case "PAUSED_PLAYBACK", "PAUSED", "STOPPED"
-                If positionTimer IsNot Nothing Then
-                    '// suspend timer if its running
-                    StopPolling()
-
-                End If
-
-        End Select
-        Debug.Print("RAISING EVENT 2")
-        ' every time we have got a state change, do a PositionInfo
-        Try
-            m_positionInfo = GetPositionInfo()
-            CurrentState.RelTime = m_positionInfo.RelTime
-
-
-            '// if the track has changed - push the current track into the prior slot.
-            Dim tempTrack As TrackInfo = TrackInfo.Parse(m_positionInfo.TrackMetaData)
-
-            If m_currentTrack.MetaData IsNot Nothing Then
-                If tempTrack.MetaData <> m_currentTrack.MetaData Then
-
-                    '// new track.
-                    m_prevTrack = m_currentTrack
-                    m_currentTrack = tempTrack
-                End If
-            Else
-                m_currentTrack = tempTrack
-            End If
-
-
-            '// the next track info comes in the preliminarystate data
-            m_nextTrack = TrackInfo.Parse(m_currentState.NextTrackMetaData)
-
-            '// now get the # tracks
-            m_mediaInfo = GetMediaInfo()
-            '// and fill them in.
-
-
-            m_currentTrack.TrackCount = m_mediaInfo.NrOfTracks
-            m_nextTrack.TrackCount = m_mediaInfo.NrOfTracks
-            m_prevTrack.TrackCount = m_mediaInfo.NrOfTracks
-            'm_currentTrack.Duration = m_currentState.CurrentTrackDuration
-            m_currentTrack.AlbumArtURI = CreateAlbumArtURI(m_currentTrack.AlbumArtURI, Device.BaseURL.ToString)
-            m_currentStatus = GetPlayerStatus()
-            If m_currentStatus = PlayerStatus.Playing Then
-                StartPolling()
-            Else
-                StopPolling()
-            End If
-            ' void
-        Catch generatedExceptionName As Exception
-        End Try
-
-        CurrentState.LastStateChange = DateTime.Now
-        EventLogger.Log(Me, EventLogEntryType.Information, "Event Processed.")
-        RaiseEvent StateChanged(Me)
-
-    End Sub
-    Public Sub StopPolling()
-        positionTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite)
-    End Sub
-    Private Function CreateAlbumArtURI(rawPath As String, documentURL As String) As String
-
-        If rawPath = "" Then
-            Return _missingAlbumArtPath
-        Else
-
-            If rawPath.StartsWith("http") Then
-                Return rawPath
-            End If
-            Dim art As String = rawPath
-
-            Dim baseUri As Uri = New Uri(documentURL)
-            Dim path As String = art.Substring(0, art.IndexOf("?"c))
-            Dim qs As String = art.Substring(art.IndexOf("?"c))
-            Dim builder As New UriBuilder(baseUri.Scheme, baseUri.Host, baseUri.Port, path, qs)
-            Return builder.Uri.OriginalString
-        End If
-
-    End Function
-
-    Private Function ParseDuration(value As String) As TimeSpan
-        If String.IsNullOrEmpty(value) Then
-            Return TimeSpan.FromSeconds(0)
-        End If
-        Return TimeSpan.Parse(value)
-    End Function
-
 #End Region
 
-#Region "public properties"
+#Region "Public Properties"
 
     Public Property Name() As String
+
     Public Property UUID() As String
+
     Public Property ControlPoint() As UPnPSmartControlPoint
+
     Public Property Device() As UPnPDevice
 
     Public ReadOnly Property MediaRenderer() As UPnPDevice
@@ -347,48 +298,53 @@ Public Class Player
         End Get
     End Property
 
-    
+    Public Property PositionInfo As cPositionInfo
+
+    Public Property MediaInfo As cMediaInfo
+
+    Public Property TransportInfo As cTransportInfo
+
+    Public ReadOnly Property CurrentState() As eTransportState
+        Get
+            Return TransportInfo.CurrentTransportState
+        End Get
+    End Property
+
+    Public ReadOnly Property CurrentStatus() As eTransportStatus
+        Get
+            Return TransportInfo.CurrentTransportStatus
+        End Get
+    End Property
+
+    Public Property PreviousTrack As TrackInfo
+
+    Public Property CurrentTrack As TrackInfo
+
+    Public Property NextTrack As TrackInfo
+
+    Public ReadOnly Property CurrentTime As TimeSpan
+        Get
+            Return PositionInfo.RelTime
+        End Get
+    End Property
+
+    Public ReadOnly Property Duration As TimeSpan
+        Get
+            Return PositionInfo.TrackDuration
+        End Get
+    End Property
+
+    Public ReadOnly Property BaseUrl() As Uri
+        Get
+            Return Device.BaseURL
+        End Get
+    End Property
+
 #End Region
-
-
-    Public Sub StartPolling()
-        If positionTimer IsNot Nothing Then
-            positionTimer.Change(100, 1000)
-            Exit Sub
-        End If
-
-        If CurrentStatus <> PlayerStatus.Playing Then
-            Return
-        End If
-
-        positionTimer = New Timer(AddressOf UpdateState, Nothing, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1))
-    End Sub
-
-    Private Sub UpdateState(state As Object)
-        m_positionInfo = GetPositionInfo()
-        m_currentState.RelTime = m_positionInfo.RelTime
-        m_currentState.LastStateChange = DateTime.Now
-
-        m_currentStatus = GetPlayerStatus()
-        m_currentState.TransportState = m_currentStatus
-
-        RaiseEvent StateChanged(Me)
-
-        Select Case m_currentStatus
-            Case PlayerStatus.Playing
-            Case Else
-                StopPolling()
-        End Select
-
-
-    End Sub
 
 #Region "AVTransport Get Info (playerstatus, mediainfo, positioninfo"
 
-    Public Function GetPlayerStatus() As PlayerStatus
-        If AVTransport Is Nothing Then
-            Return PlayerStatus.Stopped
-        End If
+    Public Function GetTransportInfo() As cTransportInfo       
         Dim arguments = New UPnPArgument(3) {}
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         arguments(1) = New UPnPArgument("CurrentTransportState", "")
@@ -398,27 +354,19 @@ Public Class Player
         Try
             AVTransport.InvokeSync("GetTransportInfo", arguments)
         Catch ex As UPnPInvokeException
-            Return PlayerStatus.Stopped
+            Return TransportInfo                                         '// on error - return existing TransportInfo
         End Try
 
         'Dim status As PlayerStatus
+        Dim ti As New cTransportInfo
+        With ti
 
+            .CurrentTransportState = GetTransportState(arguments(1).DataValue.ToString)
+            .CurrentTransportStatus = GetTransportStatus(arguments(2).DataValue.ToString)
 
-        Select Case DirectCast(arguments(1).DataValue, String)
-            Case "PLAYING"
-                m_currentStatus = PlayerStatus.Playing
-                Return PlayerStatus.Playing
+        End With
 
-            Case "PAUSED", "PAUSED_PLAYBACK", "PLAYING_PAUSED"
-                m_currentStatus = PlayerStatus.Paused
-                Return PlayerStatus.Paused
-            Case "STOPPED"
-                m_currentStatus = PlayerStatus.Stopped
-            Case Else
-                Return PlayerStatus.Stopped
-        End Select
-
-
+        Return ti
     End Function
 
     Public Function GetMediaInfo() As cMediaInfo
@@ -433,11 +381,27 @@ Public Class Player
         arguments(7) = New UPnPArgument("PlayMedium", Nothing)
         arguments(8) = New UPnPArgument("RecordMedium", Nothing)
         arguments(9) = New UPnPArgument("WriteStatus", Nothing)
-        AVTransport.InvokeSync("GetMediaInfo", arguments)
 
-        Return New cMediaInfo() With { _
-            .NrOfTracks = CUInt(arguments(1).DataValue) _
-        }
+        Try
+            AVTransport.InvokeSync("GetMediaInfo", arguments)
+        Catch ex As UPnPInvokeException
+            Return MediaInfo                                        '// on error - return existing MediaInfo
+        End Try
+
+        '// do we need to return media info or could we just set the public property here? for now, let's optimzie for code friendliness
+        Dim mi As New cMediaInfo
+        With mi
+            .NrTracks = CUInt(arguments(1).DataValue)
+            TimeSpan.TryParse(arguments(2).DataValue, .MediaDuration)
+            .CurrentURI = arguments(3).DataValue.ToString
+            .CurrentURIMetaData = arguments(4).DataValue.ToString
+            .NextURI = arguments(5).DataValue.ToString
+            .NextURIMetaData = arguments(6).DataValue.ToString
+            .PlayMedium = arguments(7).DataValue.ToString
+
+        End With
+
+        Return mi
     End Function
 
     Public Function GetPositionInfo() As cPositionInfo
@@ -451,21 +415,24 @@ Public Class Player
         arguments(6) = New UPnPArgument("AbsTime", Nothing)
         arguments(7) = New UPnPArgument("RelCount", 0)
         arguments(8) = New UPnPArgument("AbsCount", 0)
-        AVTransport.InvokeSync("GetPositionInfo", arguments)
 
-        Dim trackDuration As TimeSpan
-        Dim relTime As TimeSpan
+        Try
+            AVTransport.InvokeSync("GetPositionInfo", arguments)
+        Catch ex As Exception
+            Return PositionInfo                                 '// on error - return existing PositionInfo
+        End Try
 
-        TimeSpan.TryParse(DirectCast(arguments(2).DataValue, String), trackDuration)
-        TimeSpan.TryParse(DirectCast(arguments(5).DataValue, String), relTime)
+        Dim pi As New cPositionInfo
+        With pi
+            .TrackIndex = CUInt(arguments(1).DataValue)
+            TimeSpan.TryParse(DirectCast(arguments(2).DataValue, String), .TrackDuration)
+            .TrackMetaData = arguments(3).DataValue.ToString
+            .TrackURI = arguments(4).DataValue.ToString
+            TimeSpan.TryParse(DirectCast(arguments(5).DataValue, String), .RelTime)
+            TimeSpan.TryParse(DirectCast(arguments(6).DataValue, String), .AbsTime)
+        End With
 
-        Return New cPositionInfo() With { _
-            .TrackIndex = CUInt(arguments(1).DataValue), _
-            .TrackMetaData = DirectCast(arguments(3).DataValue, String), _
-            .TrackURI = DirectCast(arguments(4).DataValue, String), _
-            .TrackDuration = trackDuration, _
-            .RelTime = relTime _
-        }
+        Return pi
     End Function
 
 #End Region
@@ -636,6 +603,43 @@ Public Class Player
     End Function
 #End Region
 
+#Region "Utility Functions"
+    '// given the UPNP string, returns the enum value
+    Shared Function GetTransportState(strState As String) As eTransportState
+        Select Case strState
+            Case "STOPPED"
+                Return eTransportState.Stopped
+            Case "PLAYING"
+                Return eTransportState.Playing
+            Case "PAUSED", "PAUSED_PLAYBACK"
+                Return eTransportState.Paused
+            Case "NO_MEDIA_PRESENT"
+                Return eTransportState.NoMediaPresent
+            Case "TRANSITIONING"
+                Return eTransportState.Paused
+            Case Else
+                Throw New System.Exception("Invalid Transport State Variable: " & strState)
+                Return eTransportState.Stopped
+        End Select
+
+    End Function
+
+    '// given the UPNP string, returns the enum value
+    Shared Function GetTransportStatus(strStatus As String) As eTransportStatus
+        Select Case strStatus
+            Case "OK"
+                Return eTransportStatus.OK
+            Case "ERROR_OCCURRED"
+                Return eTransportStatus.ERROR
+            Case Else
+                Throw New System.Exception("Invalid Transport Status Variable: " & strStatus)
+                Return eTransportStatus.UNKNOWN
+
+        End Select
+    End Function
+
+#End Region
+
 End Class
 
 Public Class SearchResult
@@ -645,17 +649,17 @@ Public Class SearchResult
     Public Property TotalMatches() As UInteger
 End Class
 
-Public Class PlayerState
-    Public Property TransportState() As String
-    Public Property NumberOfTracks() As String
-    Public Property CurrentTrack() As String
-    Public Property CurrentTrackDuration() As TimeSpan
-    Public Property CurrentTrackMetaData() As String
-    Public Property LastStateChange() As DateTime
-    Public Property RelTime() As TimeSpan
-    Public Property NextTrackMetaData() As String
+'Public Class PlayerState
+'    Public Property TransportState() As String
+'    Public Property NumberOfTracks() As String
+'    Public Property CurrentTrack() As String
+'    Public Property CurrentTrackDuration() As TimeSpan
+'    Public Property CurrentTrackMetaData() As String
+'    Public Property LastStateChange() As DateTime
+'    Public Property RelTime() As TimeSpan
+'    Public Property NextTrackMetaData() As String
 
-End Class
+'End Class
 
 Public Class TrackHolder
     Public Property Uri() As String
@@ -707,13 +711,29 @@ Public Class SonosItem
 End Class
 
 Public Class cPositionInfo
-    Public Property TrackURI() As String
-    Public Property TrackIndex() As UInteger
-    Public Property TrackMetaData() As String
-    Public Property RelTime() As TimeSpan
-    Public Property TrackDuration() As TimeSpan
+    Public Property TrackIndex() As UInteger = 0
+    Public Property TrackDuration() As TimeSpan = New TimeSpan(0, 0, 0)
+    Public Property TrackMetaData() As String = ""
+    Public Property TrackURI() As String = ""
+    Public Property RelTime() As TimeSpan = New TimeSpan(0, 0, 0)
+    Public Property AbsTime() As TimeSpan = New TimeSpan(0, 0, 0)
 End Class
 
+Public Class cTransportInfo
+    Public Property CurrentTransportState As eTransportState = eTransportState.NoMediaPresent
+    Public Property CurrentTransportStatus As eTransportStatus = eTransportStatus.UNKNOWN
+    Public Property CurrentSpeed As String = ""
+End Class
+
+Public Class cMediaInfo
+    Public Property NrTracks As Integer = 0
+    Public Property MediaDuration As TimeSpan = New TimeSpan(0, 0, 0)
+    Public Property CurrentURI As String = ""
+    Public Property CurrentURIMetaData As String = ""
+    Public Property NextURI As String = ""
+    Public Property NextURIMetaData As String = ""
+    Public Property PlayMedium As String = ""
+End Class
 Public Class SonosDIDL
 
     Public Property AlbumArtURI() As String
@@ -775,15 +795,15 @@ Public Class TrackInfo
     Public Property Description As String
     Public Property MetaData As String
 
+    Private Shared _missingAlbumArtPath As String = "http://www.kavan.us/musicweb/images/No-album-art300x300.jpg"
 
-
-    Public Shared Function Parse(xml As String) As TrackInfo
+    Public Shared Function Parse(xml As String, documentURL As String) As TrackInfo
         If xml = "" Then Return New TrackInfo
         Dim didl = XElement.Parse(xml)
-        Return Parse(didl)
+        Return Parse(didl, documentURL)
     End Function
 
-    Public Shared Function Parse(didl As XElement) As TrackInfo
+    Public Shared Function Parse(didl As XElement, documentURL As String) As TrackInfo
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"
         Dim dc As XNamespace = "http://purl.org/dc/elements/1.1/"
         Dim upnp As XNamespace = "urn:schemas-upnp-org:metadata-1-0/upnp/"
@@ -817,8 +837,7 @@ Public Class TrackInfo
             SetElementFilteredValue(response.AlbumArtist, item, upnp + "artist", "role", "AlbumArtist")
             SetElementFilteredValue(response.Artist, item, upnp + "artist", "role", "Performer")
             SetElementFilteredValue(response.AlbumArtURI, item, upnp + "albumArtURI", dlna + "profileID", "JPEG_MED")
-
-
+            response.AlbumArtURI = FixAlbumArtURI(response.AlbumArtURI, documentURL)
         Next
 
         Return response
@@ -845,17 +864,28 @@ Public Class TrackInfo
         Next
 
     End Sub
+
+    '// Fix AlbumArt URI issues
+    Private Shared Function FixAlbumArtURI(rawAlbumArtURI As String, documentURL As String) As String
+
+        If rawAlbumArtURI = "" Then
+            Return _missingAlbumArtPath
+        Else
+
+            If rawAlbumArtURI.StartsWith("http") Then
+                Return rawAlbumArtURI
+            End If
+            Dim art As String = rawAlbumArtURI
+
+            Dim baseUri As Uri = New Uri(documentURL)
+            Dim path As String = art.Substring(0, art.IndexOf("?"c))
+            Dim qs As String = art.Substring(art.IndexOf("?"c))
+            Dim builder As New UriBuilder(baseUri.Scheme, baseUri.Host, baseUri.Port, path, qs)
+            Return builder.Uri.OriginalString
+        End If
+
+    End Function
 End Class
 
-Public Class cMediaInfo
-    Public Property NrOfTracks() As UInteger
-        Get
-            Return m_NrOfTracks
-        End Get
-        Set(value As UInteger)
-            m_NrOfTracks = value
-        End Set
-    End Property
-    Private m_NrOfTracks As UInteger
-End Class
+
 

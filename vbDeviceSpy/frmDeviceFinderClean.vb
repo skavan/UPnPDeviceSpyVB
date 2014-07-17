@@ -659,10 +659,10 @@ Public Class frmDeviceFinderClean
 
 
         'End If
-        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentState.RelTime, obj.PositionInfo.TrackDuration)
-        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentState.RelTime.TotalSeconds, obj.PositionInfo.TrackDuration.TotalSeconds, obj.CurrentState.RelTime.TotalSeconds / obj.PositionInfo.TrackDuration.TotalSeconds))
-        If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentState.RelTime.TotalSeconds Then
-            pbDuration.Value = (obj.CurrentState.RelTime.TotalSeconds / obj.PositionInfo.TrackDuration.TotalSeconds) * 100
+        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentTime, obj.Duration)
+        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentTime.TotalSeconds, obj.Duration.TotalSeconds, obj.CurrentTime.TotalSeconds / obj.Duration.TotalSeconds))
+        If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentTime.TotalSeconds Then
+            pbDuration.Value = (obj.CurrentTime.TotalSeconds / obj.Duration.TotalSeconds) * 100
         End If
 
         lblDevice.Text = player.Device.FriendlyName
