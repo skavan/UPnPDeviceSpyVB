@@ -25,6 +25,8 @@ Public Class frmDeviceFinderClean
     Private Const AVTRANSPORTDEVICE = "AV Transport Device: "
     Private Const COMPOUNDDEVICE = "Compound Device: "
 
+    Dim myDebugForm As New debugForm 'splashform is the form you want to be seperate from main ui thread
+
 #Region "GUI Management"
 
     '// manage Toolstrip resizing and "spring" functionality
@@ -49,7 +51,7 @@ Public Class frmDeviceFinderClean
 #Region "Initialization & Cleanup"
 
     Private Sub Init()
-        
+
         Categories.Add("urn:schemas-upnp-org:device:MediaRenderer:1", "Media Renderers")
         Categories.Add("urn:schemas-upnp-org:device:MediaServer:1", "Media Servers")
         Categories.Add("OTHER", "Other")
@@ -73,7 +75,7 @@ Public Class frmDeviceFinderClean
             ManagedRootNodes.Add(item.Key, root)
             Me.ManagedTree.Nodes.Add(root)
         Next
-        
+
         'debugForm.Show()
         ShowDebug()
         'Dim frm As debugForm = debugForm
@@ -103,7 +105,7 @@ Public Class frmDeviceFinderClean
     End Sub
 
     Private Sub ShowDebug()
-        Dim myDebugForm As New debugForm 'splashform is the form you want to be seperate from main ui thread
+
         Dim myThread As New Threading.Thread(AddressOf debugForm.ShowDialog)
         myThread.Start()
     End Sub
@@ -630,8 +632,11 @@ Public Class frmDeviceFinderClean
 
 
 
-    Private Sub player_StateChanged(obj As Player) Handles player.StateChanged
-        Debug.Print("Player State Change")
+    Private Sub player_StateChanged(obj As Player, eventType As Player.ePlayerStateChangeType) Handles player.StateChanged
+        'Debug.Print("Player State Change")
+        If eventType = vbDeviceSpy.Player.ePlayerStateChangeType.PollingEvent Then
+            EventLogger.Log(Me, EventLogEntryType.FailureAudit, obj.CurrentTime.ToString)
+        End If
         MyBase.Invoke(New PlayerStateChangeHandler(AddressOf UpdatePlayerInfo), obj)
     End Sub
 
@@ -639,28 +644,28 @@ Public Class frmDeviceFinderClean
         propGrid1.SelectedObject = obj
         lblAlbum.Text = obj.CurrentTrack.Album
         lblTitle.Text = obj.CurrentTrack.Title
-        If obj.CurrentTrack.Artist <> obj.CurrentTrack.AlbumArtist Then
+        If obj.CurrentTrack.AlbumArtist = "" Then
             lblArtist.Text = obj.CurrentTrack.Artist
-            lblArtist2.Text = obj.CurrentTrack.AlbumArtist
+        ElseIf obj.CurrentTrack.Artist = "" Then
+            lblArtist.Text = obj.CurrentTrack.Artist
         Else
-            lblArtist.Text = obj.CurrentTrack.AlbumArtist
-            lblArtist2.Text = ""
+            If obj.CurrentTrack.Artist = obj.CurrentTrack.AlbumArtist Then
+                lblArtist.Text = obj.CurrentTrack.Artist
+            Else
+                lblArtist.Text = obj.CurrentTrack.Artist & "/" & obj.CurrentTrack.AlbumArtist
+            End If
         End If
-        'If WebBrowser1.Url.ToString <> obj.CurrentTrack.AlbumArtURI Then
-
+        lblTrackNum.Text = obj.PositionInfo.TrackIndex & " of " & obj.MediaInfo.NrTracks
         If picBox.ImageLocation IsNot Nothing Then
             If picBox.ImageLocation <> obj.CurrentTrack.AlbumArtURI Then
                 picBox.ImageLocation = obj.CurrentTrack.AlbumArtURI
             End If
         Else
             picBox.ImageLocation = obj.CurrentTrack.AlbumArtURI
-
         End If
 
 
-        'End If
         lblDuration.Text = String.Format("{0}/{1}", obj.CurrentTime, obj.Duration)
-        Debug.Print(String.Format("{0}|{1}-{2}", obj.CurrentTime.TotalSeconds, obj.Duration.TotalSeconds, obj.CurrentTime.TotalSeconds / obj.Duration.TotalSeconds))
         If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentTime.TotalSeconds Then
             pbDuration.Value = (obj.CurrentTime.TotalSeconds / obj.Duration.TotalSeconds) * 100
         End If
@@ -681,6 +686,23 @@ Public Class frmDeviceFinderClean
 
     End Sub
 
+    Private Sub propGrid2_Click(sender As Object, e As EventArgs) Handles propGrid2.SelectedGridItemChanged
+
+        If propGrid2.SelectedGridItem.Tag IsNot Nothing Then
+            If propGrid2.SelectedGridItem.Tag = propGrid2.SelectedGridItem.Value Then
+                Exit Sub
+            End If
+        End If
+        Dim item As Object = propGrid2.SelectedGridItem.Value
+        propGrid2.SelectedGridItem.Tag = item
+        If item IsNot Nothing Then
+            Try
+                XML_Coloring(RichTextBox1, item.ToString, 0)
+            Catch ex As Exception
+
+            End Try
+        End If
+    End Sub
 
     Private Sub btnPlay_Click(sender As Object, e As EventArgs) Handles btnPlay.Click
         player.Play()

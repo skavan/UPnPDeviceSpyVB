@@ -1,6 +1,7 @@
 ﻿Imports OpenSource.UPnP
 Imports System.Net.NetworkInformation
 Imports System.Net
+Imports System.Xml
 
 Module modUtils
 
@@ -341,6 +342,84 @@ Module modUtils
         End If
     End Function
 
+    Public Sub XML_Coloring(txtBox As RichTextBox, srcString As String, indent As Integer)
+        If srcString.Contains("xmlns") Then
+            txtBox.Clear()
+            Dim tmpDoc As New Xml.XmlDocument
+            tmpDoc.LoadXml(srcString)
+            XML_Coloring(txtBox, tmpDoc.ChildNodes, indent)
+        Else
+            txtBox.Clear()
+            txtBox.Select(txtBox.TextLength, 0)
+            txtBox.SelectionColor = Color.Blue
+            txtBox.AppendText(srcString & vbCrLf & vbCrLf)
+        End If
+
+    End Sub
+
+    Public Sub XML_Coloring(txtBox As RichTextBox, nodelist As XmlNodeList, indent As Integer)
+
+        For Each xmlNodeType As XmlNode In nodelist
+
+            With txtBox
+
+                If Not xmlNodeType.NodeType = Xml.XmlNodeType.Element Then
+                    .SelectionIndent = indent
+                    .SelectionColor = Color.Black
+                    .AppendText(xmlNodeType.OuterXml & vbNewLine)
+                    Continue For
+                End If
+
+                Dim xmlNode As Xml.XmlElement = xmlNodeType
+
+                ' Element node
+                .SelectionIndent = indent
+                .SelectionColor = Color.Blue
+                .AppendText("<" & xmlNode.Name)
+
+                ' Load attributes
+                If xmlNode.HasAttributes Then
+                    For Each xmlAttrib As XmlAttribute In xmlNode.Attributes
+                        .SelectionColor = Color.Red
+                        .AppendText(" " & xmlAttrib.Name)
+                        .SelectionColor = Color.Black
+                        .AppendText("=")
+                        .SelectionColor = Color.Purple
+                        .AppendText("""" & xmlAttrib.Value & """")
+                    Next
+                End If
+
+                ' Load child nodes
+                If xmlNode.HasChildNodes Then
+
+                    .SelectionColor = Color.Blue
+                    .AppendText(">")
+
+                    If xmlNode.ChildNodes(0).GetType() Is GetType(XmlText) Then
+                        ' Contains text
+                        .SelectionColor = Color.Black
+                        .AppendText(xmlNode.InnerText)
+                    Else
+                        ' Has child nodes
+                        .AppendText(vbNewLine)
+                        XML_Coloring(txtBox, xmlNode.ChildNodes, indent + 20)
+
+                    End If
+
+                    .SelectionIndent = indent
+                    .SelectionColor = Color.Blue
+                    .AppendText("</" & xmlNode.Name & ">" & vbNewLine)
+                Else
+                    .SelectionColor = Color.Blue
+                    .AppendText(" />" & vbNewLine)
+
+                End If
+
+            End With
+
+        Next
+
+    End Sub
 
 #Region "IP Utilities"
     Public Function GetFirstValidIPAddresses() As IPAddress
@@ -370,6 +449,6 @@ Module modUtils
         Return Nothing
     End Function
 
-    
+
 #End Region
 End Module

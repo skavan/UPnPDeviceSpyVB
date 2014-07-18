@@ -6,7 +6,9 @@ Public Class debugForm
     Dim dataTable As New DataTable
     Dim dataView As DataView
     Public ipFilter As String = "XXXX"
+    Public isLogging As Boolean
 
+#Region "Initialization & CleanUp"
     Private Sub debugForm_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         EventLogger.Enabled = False
         RemoveHandler EventLogger.OnEvent, AddressOf eventLogger_OnEvent
@@ -33,77 +35,31 @@ Public Class debugForm
         DataGridView1.MultiSelect = False
         dataView.RowFilter = BuildFilter()
         'Dim results As DataRow() = dataTable.Select(BuildFilter)
-
+        isLogging = True
         'DataGridView1.DataSource = dataTable.Select(BuildFilter)
     End Sub
-
+#End Region
+ 
+#Region "Callback & Event Processing"
     Private Sub eventLogger_OnEvent(LogType As EventLogEntryType, origin As Object, StackTrace As String, LogMessage As String)
         Me.Invoke(New HandleOnEvent(AddressOf OnEvent), {LogType, origin.ToString, StackTrace, LogMessage})
 
     End Sub
 
     Private Sub OnEvent(LogType As EventLogEntryType, origin As Object, StackTrace As String, LogMessage As String)
-        dataTable.Rows.Add({Now, LogType, origin.ToString, LogMessage, StackTrace})
+        If LogType = EventLogEntryType.FailureAudit Then
+            lstOtherEvents.Items.Insert(0, LogMessage)
+        Else
+            dataTable.Rows.Add({Now, LogType, origin.ToString, LogMessage, StackTrace})
+        End If
+
         'If LogType = EventLogEntryType.Information Then MsgBox("HEY!")
         'DataGridView1.Rows(0).Selected = True
     End Sub
 
-    Private Function BuildFilter() As String
-        If btnAll.Checked Then Return ""
+#End Region
 
-        Dim base As String = "", prefix As String
-        If btnErrors.Checked Then base += "(LogType = 1)"
-
-        If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnWarnings.Checked Then base += prefix & "(LogType = 2)"
-
-        If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnInfo.Checked Then base += prefix & "(LogType = 4)"
-
-        If base <> "" Then prefix = " OR " Else prefix = ""
-        If btnAudit.Checked Then base += prefix & "(LogType = 8)"
-
-        If btnManaged.Checked Then
-            If base <> "" Then
-                prefix = " OR "
-                base = "(" + base + ")"
-            Else
-                prefix = ""
-            End If
-            base += prefix + "((Origin = 'OpenSource.UPnP.UPnPControlPoint') AND (LogMessage LIKE '%" & ipFilter & "%'))"
-        End If
-        Debug.Print(base)
-        Return base
-    End Function
-
-    Private Sub CheckStateChanged(sender As Object, e As EventArgs) Handles btnErrors.CheckStateChanged, btnWarnings.CheckStateChanged, btnAudit.CheckStateChanged, btnInfo.CheckStateChanged, btnManaged.CheckStateChanged, btnAll.CheckStateChanged
-        If dataTable.Rows.Count > 0 Then
-            'DataGridView1.DataSource = dataTable.Select(BuildFilter)
-            dataView.RowFilter = BuildFilter()
-        End If
-
-
-    End Sub
-
-    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
-
-    End Sub
-
-    Private Sub DataGridView1_SelectionChanged(sender As Object, e As EventArgs) Handles DataGridView1.SelectionChanged
-        If dataTable.Rows.Count > 0 Then
-            Try
-                Dim r As DataRowView = DataGridView1.CurrentRow.DataBoundItem
-                Debug.Print("COLUMN 1: " & r(1))
-                ShowDetail(r("LogMessage").ToString(), r("StackTrace").ToString())
-                'ShowDetail(DataGridView1.SelectedRows(0).Cells("LogMessage").Value, DataGridView1.SelectedRows(0).Cells("StackTrace").Value)
-            Catch ex As Exception
-                Debug.Print("Something is wrong!")
-            End Try
-
-
-        End If
-
-    End Sub
+#Region "General Methods and Utility Functions"
 
     Private Sub ShowDetail(log As String, trace As String)
         RichTextBox1.Clear()
@@ -136,72 +92,59 @@ Public Class debugForm
         RichTextBox1.AppendText(trace)
     End Sub
 
-    Public Sub XML_Coloring(txtBox As RichTextBox, nodelist As XmlNodeList, indent As Integer)
+    Private Function BuildFilter() As String
+        If btnAll.Checked Then Return ""
 
-        For Each xmlNodeType As XmlNode In nodelist
+        Dim base As String = "", prefix As String
+        If btnErrors.Checked Then base += "(LogType = 1)"
 
-            With txtBox
+        If base <> "" Then prefix = " OR " Else prefix = ""
+        If btnWarnings.Checked Then base += prefix & "(LogType = 2)"
 
-                If Not xmlNodeType.NodeType = Xml.XmlNodeType.Element Then
-                    .SelectionIndent = indent
-                    .SelectionColor = Color.Black
-                    .AppendText(xmlNodeType.OuterXml & vbNewLine)
-                    Continue For
-                End If
+        If base <> "" Then prefix = " OR " Else prefix = ""
+        If btnInfo.Checked Then base += prefix & "(LogType = 4)"
 
-                Dim xmlNode As Xml.XmlElement = xmlNodeType
+        If base <> "" Then prefix = " OR " Else prefix = ""
+        If btnAudit.Checked Then base += prefix & "(LogType = 8)"
 
-                ' Element node
-                .SelectionIndent = indent
-                .SelectionColor = Color.Blue
-                .AppendText("<" & xmlNode.Name)
+        If btnManaged.Checked Then
+            If base <> "" Then
+                prefix = " OR "
+                base = "(" + base + ")"
+            Else
+                prefix = ""
+            End If
+            base += prefix + "((Origin = 'OpenSource.UPnP.UPnPControlPoint') AND (LogMessage LIKE '%" & ipFilter & "%'))"
+        End If
+        Debug.Print(base)
+        Return base
+    End Function
 
-                ' Load attributes
-                If xmlNode.HasAttributes Then
-                    For Each xmlAttrib As XmlAttribute In xmlNode.Attributes
-                        .SelectionColor = Color.Red
-                        .AppendText(" " & xmlAttrib.Name)
-                        .SelectionColor = Color.Black
-                        .AppendText("=")
-                        .SelectionColor = Color.Purple
-                        .AppendText("""" & xmlAttrib.Value & """")
-                    Next
-                End If
+    
 
-                ' Load child nodes
-                If xmlNode.HasChildNodes Then
+#End Region
 
-                    .SelectionColor = Color.Blue
-                    .AppendText(">")
+#Region "GUI Events"
 
-                    If xmlNode.ChildNodes(0).GetType() Is GetType(XmlText) Then
-                        ' Contains text
-                        .SelectionColor = Color.Black
-                        .AppendText(xmlNode.InnerText)
-                    Else
-                        ' Has child nodes
-                        .AppendText(vbNewLine)
-                        XML_Coloring(txtBox, xmlNode.ChildNodes, indent + 20)
-
-                    End If
-
-                    .SelectionIndent = indent
-                    .SelectionColor = Color.Blue
-                    .AppendText("</" & xmlNode.Name & ">" & vbNewLine)
-                Else
-                    .SelectionColor = Color.Blue
-                    .AppendText(" />" & vbNewLine)
-
-                End If
-
-            End With
-
-        Next
-
+    Private Sub CheckStateChanged(sender As Object, e As EventArgs) Handles btnErrors.CheckStateChanged, btnWarnings.CheckStateChanged, btnAudit.CheckStateChanged, btnInfo.CheckStateChanged, btnManaged.CheckStateChanged, btnAll.CheckStateChanged
+        If dataTable.Rows.Count > 0 Then
+            dataView.RowFilter = BuildFilter()
+        End If
     End Sub
+    '
+    Private Sub DataGridView1_SelectionChanged(sender As Object, e As EventArgs) Handles DataGridView1.SelectionChanged
+        If dataTable.Rows.Count > 0 Then
+            Try
+                Dim r As DataRowView = DataGridView1.CurrentRow.DataBoundItem
+                Debug.Print("COLUMN 1: " & r(1))
+                ShowDetail(r("LogMessage").ToString(), r("StackTrace").ToString())
+                'ShowDetail(DataGridView1.SelectedRows(0).Cells("LogMessage").Value, DataGridView1.SelectedRows(0).Cells("StackTrace").Value)
+            Catch ex As Exception
+                Debug.Print("Something is wrong!")
+            End Try
 
 
-    Private Sub btnPause_Click(sender As Object, e As EventArgs) Handles btnPause.Click
+        End If
 
     End Sub
 
@@ -210,7 +153,8 @@ Public Class debugForm
         Debug.Print(dataView.RowFilter)
     End Sub
 
-    Private Sub btnPause_MouseUp(sender As Object, e As MouseEventArgs) Handles btnPause.MouseUp
+#End Region
 
-    End Sub
+    
+
 End Class

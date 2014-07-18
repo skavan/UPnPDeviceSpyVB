@@ -112,15 +112,18 @@ Public Class discovery
         For Each service As UPnPService In SubscribedList
             service.UnSubscribe(Nothing)
         Next
-        For Each device As UPnPDevice In scp.Devices
-            Try
-                scp.ForceDisposeDevice(device)
-            Catch ex As Exception
-                Debug.Print("Couldn't kill :" & device.FriendlyName)
-            End Try
-        Next
-        scp.Devices.Clear()
-        scp = Nothing
+        If scp IsNot Nothing Then
+            For Each device As UPnPDevice In scp.Devices
+                Try
+                    scp.ForceDisposeDevice(device)
+                Catch ex As Exception
+                    Debug.Print("Couldn't kill :" & device.FriendlyName)
+                End Try
+            Next
+            scp.Devices.Clear()
+            scp = Nothing
+        End If
+        
     End Sub
 
     Sub SaveSettings()

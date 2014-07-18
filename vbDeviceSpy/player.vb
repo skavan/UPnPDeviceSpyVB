@@ -33,8 +33,11 @@ Public Class Player
 
     Private positionTimer As Timer
 
-    Public Event StateChanged As Action(Of Player)
-
+    Public Event StateChanged As Action(Of Player, ePlayerStateChangeType)
+    Public Enum ePlayerStateChangeType
+        SubscriptionEvent
+        PollingEvent
+    End Enum
     
 #End Region
 
@@ -99,7 +102,7 @@ Public Class Player
         PositionInfo = GetPositionInfo()
         TransportInfo = GetTransportInfo()
 
-        RaiseEvent StateChanged(Me)
+        RaiseEvent StateChanged(Me, ePlayerStateChangeType.PollingEvent)
 
         If TransportInfo.CurrentTransportState <> eTransportState.Playing Then StopPolling()
     End Sub
@@ -184,7 +187,7 @@ Public Class Player
         End Try
 
         EventLogger.Log(Me, EventLogEntryType.Warning, "Event Processed.")
-        RaiseEvent StateChanged(Me)
+        RaiseEvent StateChanged(Me, ePlayerStateChangeType.SubscriptionEvent)
 
 
     End Sub
