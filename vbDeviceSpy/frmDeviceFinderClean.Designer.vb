@@ -24,7 +24,7 @@ Partial Class frmDeviceFinderClean
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmDeviceFinderClean))
-        Dim ListViewItem1 As System.Windows.Forms.ListViewItem = New System.Windows.Forms.ListViewItem(New String() {""}, -1, System.Drawing.SystemColors.WindowText, System.Drawing.SystemColors.Window, New System.Drawing.Font("Microsoft Sans Serif", 8.25!))
+        Dim ListViewItem2 As System.Windows.Forms.ListViewItem = New System.Windows.Forms.ListViewItem(New String() {""}, -1, System.Drawing.SystemColors.WindowText, System.Drawing.SystemColors.Window, New System.Drawing.Font("Microsoft Sans Serif", 8.25!))
         Me.mainMenu = New System.Windows.Forms.MainMenu(Me.components)
         Me.menuItem1 = New System.Windows.Forms.MenuItem()
         Me.mnuGo = New System.Windows.Forms.MenuItem()
@@ -109,30 +109,43 @@ Partial Class frmDeviceFinderClean
         Me.propGrid2 = New System.Windows.Forms.PropertyGrid()
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
-        Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.lblArtist = New System.Windows.Forms.Label()
-        Me.btnPrev = New System.Windows.Forms.Button()
-        Me.lblAlbum = New System.Windows.Forms.Label()
-        Me.btnStop = New System.Windows.Forms.Button()
-        Me.lblTrackNum = New System.Windows.Forms.Label()
-        Me.btnPlay = New System.Windows.Forms.Button()
-        Me.lblTitle = New System.Windows.Forms.Label()
-        Me.btnNext = New System.Windows.Forms.Button()
+        Me.Splitter3_1 = New System.Windows.Forms.SplitContainer()
         Me.ToolStrip4 = New System.Windows.Forms.ToolStrip()
         Me.ToolStripComboBox2 = New System.Windows.Forms.ToolStripComboBox()
         Me.ToolStripButton2 = New System.Windows.Forms.ToolStripButton()
-        Me.btnPause = New System.Windows.Forms.Button()
+        Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
+        Me.picBoxNext = New System.Windows.Forms.PictureBox()
+        Me.picBoxPrev = New System.Windows.Forms.PictureBox()
+        Me.Panel1 = New System.Windows.Forms.Panel()
         Me.picBox = New System.Windows.Forms.PictureBox()
-        Me.lblDevice = New System.Windows.Forms.Label()
         Me.StatusStrip2 = New System.Windows.Forms.StatusStrip()
         Me.lblDuration = New System.Windows.Forms.ToolStripStatusLabel()
         Me.pbDuration = New System.Windows.Forms.ToolStripProgressBar()
-        Me.Splitter3_1 = New System.Windows.Forms.SplitContainer()
-        Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
-        Me.Panel1 = New System.Windows.Forms.Panel()
         Me.Panel2 = New System.Windows.Forms.Panel()
+        Me.FlowLayoutPanel1 = New System.Windows.Forms.FlowLayoutPanel()
+        Me.btnPrev = New System.Windows.Forms.Button()
+        Me.btnStop = New System.Windows.Forms.Button()
+        Me.btnPlay = New System.Windows.Forms.Button()
+        Me.btnNext = New System.Windows.Forms.Button()
+        Me.btnPause = New System.Windows.Forms.Button()
         Me.Panel3 = New System.Windows.Forms.Panel()
+        Me.lblTitle = New System.Windows.Forms.Label()
+        Me.lblArtist = New System.Windows.Forms.Label()
+        Me.lblAlbum = New System.Windows.Forms.Label()
+        Me.lblQueueInfo = New System.Windows.Forms.Label()
+        Me.lblDevice = New System.Windows.Forms.Label()
         Me.Panel4 = New System.Windows.Forms.Panel()
+        Me.lblTrackNumPrev = New System.Windows.Forms.Label()
+        Me.lblAlbumPrev = New System.Windows.Forms.Label()
+        Me.lblArtistPrev = New System.Windows.Forms.Label()
+        Me.lblTitlePrev = New System.Windows.Forms.Label()
+        Me.Panel5 = New System.Windows.Forms.Panel()
+        Me.lblTrackNumNext = New System.Windows.Forms.Label()
+        Me.lblAlbumNext = New System.Windows.Forms.Label()
+        Me.lblArtistNext = New System.Windows.Forms.Label()
+        Me.lblTitleNext = New System.Windows.Forms.Label()
+        Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
+        Me.lblTrackNum = New System.Windows.Forms.Label()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -165,18 +178,22 @@ Partial Class frmDeviceFinderClean
         Me.Splitter2_3.Panel2.SuspendLayout()
         Me.Splitter2_3.SuspendLayout()
         Me.TabPage1.SuspendLayout()
-        Me.ToolStrip4.SuspendLayout()
-        CType(Me.picBox, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.StatusStrip2.SuspendLayout()
         CType(Me.Splitter3_1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Splitter3_1.Panel1.SuspendLayout()
         Me.Splitter3_1.Panel2.SuspendLayout()
         Me.Splitter3_1.SuspendLayout()
+        Me.ToolStrip4.SuspendLayout()
         Me.TableLayoutPanel1.SuspendLayout()
+        CType(Me.picBoxNext, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.picBoxPrev, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel1.SuspendLayout()
+        CType(Me.picBox, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.StatusStrip2.SuspendLayout()
         Me.Panel2.SuspendLayout()
+        Me.FlowLayoutPanel1.SuspendLayout()
         Me.Panel3.SuspendLayout()
         Me.Panel4.SuspendLayout()
+        Me.Panel5.SuspendLayout()
         Me.SuspendLayout()
         '
         'mainMenu
@@ -597,7 +614,7 @@ Partial Class frmDeviceFinderClean
         Me.listInfo.ContextMenu = Me.listInfoContextMenu
         Me.listInfo.Dock = System.Windows.Forms.DockStyle.Fill
         Me.listInfo.FullRowSelect = True
-        Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
+        Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem2})
         Me.listInfo.Location = New System.Drawing.Point(0, 6)
         Me.listInfo.Name = "listInfo"
         Me.listInfo.Size = New System.Drawing.Size(480, 394)
@@ -816,111 +833,22 @@ Partial Class frmDeviceFinderClean
         Me.TabPage1.TabIndex = 2
         Me.TabPage1.Text = "Player"
         '
-        'imgMediumIcons
+        'Splitter3_1
         '
-        Me.imgMediumIcons.ImageStream = CType(resources.GetObject("imgMediumIcons.ImageStream"), System.Windows.Forms.ImageListStreamer)
-        Me.imgMediumIcons.TransparentColor = System.Drawing.Color.Transparent
-        Me.imgMediumIcons.Images.SetKeyName(0, "address-book-new-4.ico")
-        Me.imgMediumIcons.Images.SetKeyName(1, "align-horizontal-top-out.ico")
-        Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
-        Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
-        Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
+        Me.Splitter3_1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.Splitter3_1.Location = New System.Drawing.Point(3, 3)
+        Me.Splitter3_1.Name = "Splitter3_1"
         '
-        'lblArtist
+        'Splitter3_1.Panel1
         '
-        Me.lblArtist.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblArtist.BackColor = System.Drawing.Color.Transparent
-        Me.lblArtist.Font = New System.Drawing.Font("Segoe UI", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblArtist.Location = New System.Drawing.Point(9, 46)
-        Me.lblArtist.Name = "lblArtist"
-        Me.lblArtist.Size = New System.Drawing.Size(400, 40)
-        Me.lblArtist.TabIndex = 2
-        Me.lblArtist.Text = "Artist"
-        Me.lblArtist.TextAlign = System.Drawing.ContentAlignment.BottomLeft
+        Me.Splitter3_1.Panel1.Controls.Add(Me.ToolStrip4)
         '
-        'btnPrev
+        'Splitter3_1.Panel2
         '
-        Me.btnPrev.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-            Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnPrev.Location = New System.Drawing.Point(5, 6)
-        Me.btnPrev.Name = "btnPrev"
-        Me.btnPrev.Size = New System.Drawing.Size(80, 60)
-        Me.btnPrev.TabIndex = 2
-        Me.btnPrev.Text = "Prev"
-        Me.btnPrev.UseVisualStyleBackColor = True
-        '
-        'lblAlbum
-        '
-        Me.lblAlbum.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblAlbum.BackColor = System.Drawing.Color.Transparent
-        Me.lblAlbum.Font = New System.Drawing.Font("Segoe UI", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblAlbum.Location = New System.Drawing.Point(8, 81)
-        Me.lblAlbum.Name = "lblAlbum"
-        Me.lblAlbum.Size = New System.Drawing.Size(400, 40)
-        Me.lblAlbum.TabIndex = 1
-        Me.lblAlbum.Text = "Album Title"
-        Me.lblAlbum.TextAlign = System.Drawing.ContentAlignment.BottomLeft
-        '
-        'btnStop
-        '
-        Me.btnStop.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnStop.Location = New System.Drawing.Point(95, 6)
-        Me.btnStop.Name = "btnStop"
-        Me.btnStop.Size = New System.Drawing.Size(80, 60)
-        Me.btnStop.TabIndex = 3
-        Me.btnStop.Text = "Stop"
-        Me.btnStop.UseVisualStyleBackColor = True
-        '
-        'lblTrackNum
-        '
-        Me.lblTrackNum.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblTrackNum.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblTrackNum.Location = New System.Drawing.Point(10, 118)
-        Me.lblTrackNum.Name = "lblTrackNum"
-        Me.lblTrackNum.Size = New System.Drawing.Size(395, 34)
-        Me.lblTrackNum.TabIndex = 4
-        Me.lblTrackNum.Text = "Artist 2"
-        Me.lblTrackNum.TextAlign = System.Drawing.ContentAlignment.BottomLeft
-        '
-        'btnPlay
-        '
-        Me.btnPlay.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnPlay.Location = New System.Drawing.Point(185, 6)
-        Me.btnPlay.Name = "btnPlay"
-        Me.btnPlay.Size = New System.Drawing.Size(80, 60)
-        Me.btnPlay.TabIndex = 0
-        Me.btnPlay.Text = "Play"
-        Me.btnPlay.UseVisualStyleBackColor = True
-        '
-        'lblTitle
-        '
-        Me.lblTitle.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblTitle.BackColor = System.Drawing.Color.Transparent
-        Me.lblTitle.Font = New System.Drawing.Font("Segoe UI Semibold", 16.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblTitle.Location = New System.Drawing.Point(6, 2)
-        Me.lblTitle.Name = "lblTitle"
-        Me.lblTitle.Size = New System.Drawing.Size(400, 40)
-        Me.lblTitle.TabIndex = 0
-        Me.lblTitle.Text = "Track Title"
-        Me.lblTitle.TextAlign = System.Drawing.ContentAlignment.BottomLeft
-        '
-        'btnNext
-        '
-        Me.btnNext.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnNext.Location = New System.Drawing.Point(365, 6)
-        Me.btnNext.Name = "btnNext"
-        Me.btnNext.Size = New System.Drawing.Size(80, 60)
-        Me.btnNext.TabIndex = 1
-        Me.btnNext.Text = "Next"
-        Me.btnNext.UseVisualStyleBackColor = True
+        Me.Splitter3_1.Panel2.Controls.Add(Me.TableLayoutPanel1)
+        Me.Splitter3_1.Size = New System.Drawing.Size(1272, 717)
+        Me.Splitter3_1.SplitterDistance = 394
+        Me.Splitter3_1.TabIndex = 3
         '
         'ToolStrip4
         '
@@ -952,44 +880,75 @@ Partial Class frmDeviceFinderClean
         Me.ToolStripButton2.Size = New System.Drawing.Size(146, 27)
         Me.ToolStripButton2.Text = "Scan for Devices"
         '
-        'btnPause
+        'TableLayoutPanel1
         '
-        Me.btnPause.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnPause.Location = New System.Drawing.Point(275, 6)
-        Me.btnPause.Name = "btnPause"
-        Me.btnPause.Size = New System.Drawing.Size(80, 60)
-        Me.btnPause.TabIndex = 5
-        Me.btnPause.Text = "Pause"
-        Me.btnPause.UseVisualStyleBackColor = True
+        Me.TableLayoutPanel1.ColumnCount = 3
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.TableLayoutPanel1.Controls.Add(Me.picBoxNext, 1, 1)
+        Me.TableLayoutPanel1.Controls.Add(Me.picBoxPrev, 0, 1)
+        Me.TableLayoutPanel1.Controls.Add(Me.Panel1, 0, 0)
+        Me.TableLayoutPanel1.Controls.Add(Me.Panel2, 2, 0)
+        Me.TableLayoutPanel1.Controls.Add(Me.Panel4, 0, 2)
+        Me.TableLayoutPanel1.Controls.Add(Me.Panel5, 1, 2)
+        Me.TableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TableLayoutPanel1.Location = New System.Drawing.Point(0, 0)
+        Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
+        Me.TableLayoutPanel1.RowCount = 3
+        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 55.0!))
+        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
+        Me.TableLayoutPanel1.Size = New System.Drawing.Size(874, 717)
+        Me.TableLayoutPanel1.TabIndex = 0
+        '
+        'picBoxNext
+        '
+        Me.picBoxNext.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.picBoxNext.Location = New System.Drawing.Point(221, 397)
+        Me.picBoxNext.Name = "picBoxNext"
+        Me.picBoxNext.Size = New System.Drawing.Size(212, 173)
+        Me.picBoxNext.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.picBoxNext.TabIndex = 7
+        Me.picBoxNext.TabStop = False
+        '
+        'picBoxPrev
+        '
+        Me.picBoxPrev.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.picBoxPrev.Location = New System.Drawing.Point(3, 397)
+        Me.picBoxPrev.Name = "picBoxPrev"
+        Me.picBoxPrev.Size = New System.Drawing.Size(212, 173)
+        Me.picBoxPrev.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.picBoxPrev.TabIndex = 6
+        Me.picBoxPrev.TabStop = False
+        '
+        'Panel1
+        '
+        Me.TableLayoutPanel1.SetColumnSpan(Me.Panel1, 2)
+        Me.Panel1.Controls.Add(Me.picBox)
+        Me.Panel1.Controls.Add(Me.StatusStrip2)
+        Me.Panel1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.Panel1.Location = New System.Drawing.Point(3, 3)
+        Me.Panel1.Name = "Panel1"
+        Me.Panel1.Size = New System.Drawing.Size(430, 388)
+        Me.Panel1.TabIndex = 2
         '
         'picBox
         '
         Me.picBox.Dock = System.Windows.Forms.DockStyle.Fill
         Me.picBox.Location = New System.Drawing.Point(0, 0)
         Me.picBox.Name = "picBox"
-        Me.picBox.Size = New System.Drawing.Size(414, 346)
+        Me.picBox.Size = New System.Drawing.Size(430, 358)
         Me.picBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.picBox.TabIndex = 2
         Me.picBox.TabStop = False
         '
-        'lblDevice
-        '
-        Me.lblDevice.Dock = System.Windows.Forms.DockStyle.Bottom
-        Me.lblDevice.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblDevice.Location = New System.Drawing.Point(0, 346)
-        Me.lblDevice.Name = "lblDevice"
-        Me.lblDevice.Size = New System.Drawing.Size(448, 30)
-        Me.lblDevice.TabIndex = 4
-        Me.lblDevice.Text = "Device Name"
-        Me.lblDevice.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-        '
         'StatusStrip2
         '
         Me.StatusStrip2.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblDuration, Me.pbDuration})
-        Me.StatusStrip2.Location = New System.Drawing.Point(0, 346)
+        Me.StatusStrip2.Location = New System.Drawing.Point(0, 358)
         Me.StatusStrip2.Name = "StatusStrip2"
-        Me.StatusStrip2.Size = New System.Drawing.Size(414, 30)
+        Me.StatusStrip2.Size = New System.Drawing.Size(430, 30)
         Me.StatusStrip2.SizingGrip = False
         Me.StatusStrip2.TabIndex = 1
         Me.StatusStrip2.Text = "StatusStrip2"
@@ -998,7 +957,7 @@ Partial Class frmDeviceFinderClean
         '
         Me.lblDuration.AutoSize = False
         Me.lblDuration.Name = "lblDuration"
-        Me.lblDuration.Size = New System.Drawing.Size(111, 25)
+        Me.lblDuration.Size = New System.Drawing.Size(173, 25)
         Me.lblDuration.Spring = True
         Me.lblDuration.Text = "ToolStripStatusLabel1"
         '
@@ -1009,84 +968,266 @@ Partial Class frmDeviceFinderClean
         Me.pbDuration.Size = New System.Drawing.Size(240, 24)
         Me.pbDuration.Style = System.Windows.Forms.ProgressBarStyle.Continuous
         '
-        'Splitter3_1
-        '
-        Me.Splitter3_1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.Splitter3_1.Location = New System.Drawing.Point(3, 3)
-        Me.Splitter3_1.Name = "Splitter3_1"
-        '
-        'Splitter3_1.Panel1
-        '
-        Me.Splitter3_1.Panel1.Controls.Add(Me.ToolStrip4)
-        '
-        'Splitter3_1.Panel2
-        '
-        Me.Splitter3_1.Panel2.Controls.Add(Me.TableLayoutPanel1)
-        Me.Splitter3_1.Size = New System.Drawing.Size(1272, 717)
-        Me.Splitter3_1.SplitterDistance = 394
-        Me.Splitter3_1.TabIndex = 3
-        '
-        'TableLayoutPanel1
-        '
-        Me.TableLayoutPanel1.ColumnCount = 2
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 48.05492!))
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 51.94508!))
-        Me.TableLayoutPanel1.Controls.Add(Me.Panel1, 0, 0)
-        Me.TableLayoutPanel1.Controls.Add(Me.Panel2, 1, 0)
-        Me.TableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.TableLayoutPanel1.Location = New System.Drawing.Point(0, 0)
-        Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
-        Me.TableLayoutPanel1.RowCount = 2
-        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 53.27755!))
-        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 46.72245!))
-        Me.TableLayoutPanel1.Size = New System.Drawing.Size(874, 717)
-        Me.TableLayoutPanel1.TabIndex = 0
-        '
-        'Panel1
-        '
-        Me.Panel1.Controls.Add(Me.picBox)
-        Me.Panel1.Controls.Add(Me.StatusStrip2)
-        Me.Panel1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.Panel1.Location = New System.Drawing.Point(3, 3)
-        Me.Panel1.Name = "Panel1"
-        Me.Panel1.Size = New System.Drawing.Size(414, 376)
-        Me.Panel1.TabIndex = 2
-        '
         'Panel2
         '
-        Me.Panel2.Controls.Add(Me.Panel4)
+        Me.Panel2.Controls.Add(Me.lblQueueInfo)
+        Me.Panel2.Controls.Add(Me.FlowLayoutPanel1)
         Me.Panel2.Controls.Add(Me.Panel3)
         Me.Panel2.Controls.Add(Me.lblDevice)
         Me.Panel2.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.Panel2.Location = New System.Drawing.Point(423, 3)
+        Me.Panel2.Location = New System.Drawing.Point(439, 3)
         Me.Panel2.Name = "Panel2"
-        Me.Panel2.Size = New System.Drawing.Size(448, 376)
+        Me.Panel2.Size = New System.Drawing.Size(432, 388)
         Me.Panel2.TabIndex = 5
+        '
+        'FlowLayoutPanel1
+        '
+        Me.FlowLayoutPanel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnPrev)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnStop)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnPlay)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnNext)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnPause)
+        Me.FlowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom
+        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(0, 298)
+        Me.FlowLayoutPanel1.Name = "FlowLayoutPanel1"
+        Me.FlowLayoutPanel1.Size = New System.Drawing.Size(432, 60)
+        Me.FlowLayoutPanel1.TabIndex = 6
+        Me.FlowLayoutPanel1.WrapContents = False
+        '
+        'btnPrev
+        '
+        Me.btnPrev.Location = New System.Drawing.Point(3, 3)
+        Me.btnPrev.Name = "btnPrev"
+        Me.btnPrev.Size = New System.Drawing.Size(83, 50)
+        Me.btnPrev.TabIndex = 2
+        Me.btnPrev.Text = "Prev"
+        Me.btnPrev.UseVisualStyleBackColor = True
+        '
+        'btnStop
+        '
+        Me.btnStop.Location = New System.Drawing.Point(92, 3)
+        Me.btnStop.Name = "btnStop"
+        Me.btnStop.Size = New System.Drawing.Size(83, 50)
+        Me.btnStop.TabIndex = 3
+        Me.btnStop.Text = "Stop"
+        Me.btnStop.UseVisualStyleBackColor = True
+        '
+        'btnPlay
+        '
+        Me.btnPlay.Location = New System.Drawing.Point(181, 3)
+        Me.btnPlay.Name = "btnPlay"
+        Me.btnPlay.Size = New System.Drawing.Size(83, 50)
+        Me.btnPlay.TabIndex = 0
+        Me.btnPlay.Text = "Play"
+        Me.btnPlay.UseVisualStyleBackColor = True
+        '
+        'btnNext
+        '
+        Me.btnNext.Location = New System.Drawing.Point(270, 3)
+        Me.btnNext.Name = "btnNext"
+        Me.btnNext.Size = New System.Drawing.Size(83, 50)
+        Me.btnNext.TabIndex = 1
+        Me.btnNext.Text = "Next"
+        Me.btnNext.UseVisualStyleBackColor = True
+        '
+        'btnPause
+        '
+        Me.btnPause.Location = New System.Drawing.Point(359, 3)
+        Me.btnPause.Name = "btnPause"
+        Me.btnPause.Size = New System.Drawing.Size(83, 50)
+        Me.btnPause.TabIndex = 5
+        Me.btnPause.Text = "Pause"
+        Me.btnPause.UseVisualStyleBackColor = True
         '
         'Panel3
         '
+        Me.Panel3.Controls.Add(Me.lblTrackNum)
         Me.Panel3.Controls.Add(Me.lblTitle)
         Me.Panel3.Controls.Add(Me.lblArtist)
-        Me.Panel3.Controls.Add(Me.lblTrackNum)
         Me.Panel3.Controls.Add(Me.lblAlbum)
-        Me.Panel3.Location = New System.Drawing.Point(1, 3)
+        Me.Panel3.Dock = System.Windows.Forms.DockStyle.Top
+        Me.Panel3.Location = New System.Drawing.Point(0, 0)
         Me.Panel3.Name = "Panel3"
-        Me.Panel3.Size = New System.Drawing.Size(409, 185)
+        Me.Panel3.Size = New System.Drawing.Size(432, 240)
         Me.Panel3.TabIndex = 1
+        '
+        'lblTitle
+        '
+        Me.lblTitle.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblTitle.BackColor = System.Drawing.Color.Transparent
+        Me.lblTitle.Font = New System.Drawing.Font("Segoe UI Semibold", 16.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblTitle.Location = New System.Drawing.Point(6, 2)
+        Me.lblTitle.Name = "lblTitle"
+        Me.lblTitle.Size = New System.Drawing.Size(423, 40)
+        Me.lblTitle.TabIndex = 0
+        Me.lblTitle.Text = "Track Title"
+        Me.lblTitle.TextAlign = System.Drawing.ContentAlignment.BottomLeft
+        '
+        'lblArtist
+        '
+        Me.lblArtist.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblArtist.BackColor = System.Drawing.Color.Transparent
+        Me.lblArtist.Font = New System.Drawing.Font("Segoe UI", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblArtist.Location = New System.Drawing.Point(9, 46)
+        Me.lblArtist.Name = "lblArtist"
+        Me.lblArtist.Size = New System.Drawing.Size(423, 40)
+        Me.lblArtist.TabIndex = 2
+        Me.lblArtist.Text = "Artist"
+        Me.lblArtist.TextAlign = System.Drawing.ContentAlignment.BottomLeft
+        '
+        'lblAlbum
+        '
+        Me.lblAlbum.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblAlbum.BackColor = System.Drawing.Color.Transparent
+        Me.lblAlbum.Font = New System.Drawing.Font("Segoe UI", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblAlbum.Location = New System.Drawing.Point(8, 81)
+        Me.lblAlbum.Name = "lblAlbum"
+        Me.lblAlbum.Size = New System.Drawing.Size(423, 40)
+        Me.lblAlbum.TabIndex = 1
+        Me.lblAlbum.Text = "Album Title"
+        Me.lblAlbum.TextAlign = System.Drawing.ContentAlignment.BottomLeft
+        '
+        'lblQueueInfo
+        '
+        Me.lblQueueInfo.Dock = System.Windows.Forms.DockStyle.Bottom
+        Me.lblQueueInfo.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblQueueInfo.Location = New System.Drawing.Point(0, 261)
+        Me.lblQueueInfo.Name = "lblQueueInfo"
+        Me.lblQueueInfo.Size = New System.Drawing.Size(432, 37)
+        Me.lblQueueInfo.TabIndex = 4
+        Me.lblQueueInfo.Text = "1"
+        '
+        'lblDevice
+        '
+        Me.lblDevice.Dock = System.Windows.Forms.DockStyle.Bottom
+        Me.lblDevice.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblDevice.Location = New System.Drawing.Point(0, 358)
+        Me.lblDevice.Name = "lblDevice"
+        Me.lblDevice.Size = New System.Drawing.Size(432, 30)
+        Me.lblDevice.TabIndex = 4
+        Me.lblDevice.Text = "Device Name"
+        Me.lblDevice.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
         'Panel4
         '
-        Me.Panel4.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.Panel4.Controls.Add(Me.btnPause)
-        Me.Panel4.Controls.Add(Me.btnPrev)
-        Me.Panel4.Controls.Add(Me.btnStop)
-        Me.Panel4.Controls.Add(Me.btnNext)
-        Me.Panel4.Controls.Add(Me.btnPlay)
-        Me.Panel4.Dock = System.Windows.Forms.DockStyle.Bottom
-        Me.Panel4.Location = New System.Drawing.Point(0, 277)
+        Me.Panel4.Controls.Add(Me.lblTrackNumPrev)
+        Me.Panel4.Controls.Add(Me.lblAlbumPrev)
+        Me.Panel4.Controls.Add(Me.lblArtistPrev)
+        Me.Panel4.Controls.Add(Me.lblTitlePrev)
+        Me.Panel4.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.Panel4.Location = New System.Drawing.Point(3, 576)
         Me.Panel4.Name = "Panel4"
-        Me.Panel4.Size = New System.Drawing.Size(448, 69)
-        Me.Panel4.TabIndex = 5
+        Me.Panel4.Size = New System.Drawing.Size(212, 138)
+        Me.Panel4.TabIndex = 8
+        '
+        'lblTrackNumPrev
+        '
+        Me.lblTrackNumPrev.AutoEllipsis = True
+        Me.lblTrackNumPrev.Location = New System.Drawing.Point(3, 106)
+        Me.lblTrackNumPrev.Name = "lblTrackNumPrev"
+        Me.lblTrackNumPrev.Size = New System.Drawing.Size(206, 32)
+        Me.lblTrackNumPrev.TabIndex = 7
+        Me.lblTrackNumPrev.Text = "Label1"
+        '
+        'lblAlbumPrev
+        '
+        Me.lblAlbumPrev.AutoEllipsis = True
+        Me.lblAlbumPrev.Location = New System.Drawing.Point(3, 64)
+        Me.lblAlbumPrev.Name = "lblAlbumPrev"
+        Me.lblAlbumPrev.Size = New System.Drawing.Size(206, 32)
+        Me.lblAlbumPrev.TabIndex = 6
+        Me.lblAlbumPrev.Text = "Label1"
+        '
+        'lblArtistPrev
+        '
+        Me.lblArtistPrev.AutoEllipsis = True
+        Me.lblArtistPrev.Location = New System.Drawing.Point(3, 32)
+        Me.lblArtistPrev.Name = "lblArtistPrev"
+        Me.lblArtistPrev.Size = New System.Drawing.Size(206, 32)
+        Me.lblArtistPrev.TabIndex = 5
+        Me.lblArtistPrev.Text = "Label1"
+        '
+        'lblTitlePrev
+        '
+        Me.lblTitlePrev.AutoEllipsis = True
+        Me.lblTitlePrev.Location = New System.Drawing.Point(3, 0)
+        Me.lblTitlePrev.Name = "lblTitlePrev"
+        Me.lblTitlePrev.Size = New System.Drawing.Size(206, 32)
+        Me.lblTitlePrev.TabIndex = 4
+        Me.lblTitlePrev.Text = "Label1"
+        '
+        'Panel5
+        '
+        Me.Panel5.Controls.Add(Me.lblTrackNumNext)
+        Me.Panel5.Controls.Add(Me.lblAlbumNext)
+        Me.Panel5.Controls.Add(Me.lblArtistNext)
+        Me.Panel5.Controls.Add(Me.lblTitleNext)
+        Me.Panel5.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.Panel5.Location = New System.Drawing.Point(221, 576)
+        Me.Panel5.Name = "Panel5"
+        Me.Panel5.Size = New System.Drawing.Size(212, 138)
+        Me.Panel5.TabIndex = 9
+        '
+        'lblTrackNumNext
+        '
+        Me.lblTrackNumNext.AutoEllipsis = True
+        Me.lblTrackNumNext.Location = New System.Drawing.Point(3, 106)
+        Me.lblTrackNumNext.Name = "lblTrackNumNext"
+        Me.lblTrackNumNext.Size = New System.Drawing.Size(206, 32)
+        Me.lblTrackNumNext.TabIndex = 3
+        Me.lblTrackNumNext.Text = "Label1"
+        '
+        'lblAlbumNext
+        '
+        Me.lblAlbumNext.AutoEllipsis = True
+        Me.lblAlbumNext.Location = New System.Drawing.Point(3, 64)
+        Me.lblAlbumNext.Name = "lblAlbumNext"
+        Me.lblAlbumNext.Size = New System.Drawing.Size(206, 32)
+        Me.lblAlbumNext.TabIndex = 2
+        Me.lblAlbumNext.Text = "Label1"
+        '
+        'lblArtistNext
+        '
+        Me.lblArtistNext.AutoEllipsis = True
+        Me.lblArtistNext.Location = New System.Drawing.Point(3, 32)
+        Me.lblArtistNext.Name = "lblArtistNext"
+        Me.lblArtistNext.Size = New System.Drawing.Size(206, 32)
+        Me.lblArtistNext.TabIndex = 1
+        Me.lblArtistNext.Text = "Label1"
+        '
+        'lblTitleNext
+        '
+        Me.lblTitleNext.AutoEllipsis = True
+        Me.lblTitleNext.Location = New System.Drawing.Point(3, 0)
+        Me.lblTitleNext.Name = "lblTitleNext"
+        Me.lblTitleNext.Size = New System.Drawing.Size(206, 32)
+        Me.lblTitleNext.TabIndex = 0
+        Me.lblTitleNext.Text = "Label1"
+        '
+        'imgMediumIcons
+        '
+        Me.imgMediumIcons.ImageStream = CType(resources.GetObject("imgMediumIcons.ImageStream"), System.Windows.Forms.ImageListStreamer)
+        Me.imgMediumIcons.TransparentColor = System.Drawing.Color.Transparent
+        Me.imgMediumIcons.Images.SetKeyName(0, "address-book-new-4.ico")
+        Me.imgMediumIcons.Images.SetKeyName(1, "align-horizontal-top-out.ico")
+        Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
+        Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
+        Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
+        '
+        'lblTrackNum
+        '
+        Me.lblTrackNum.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblTrackNum.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblTrackNum.Location = New System.Drawing.Point(10, 121)
+        Me.lblTrackNum.Name = "lblTrackNum"
+        Me.lblTrackNum.Size = New System.Drawing.Size(418, 37)
+        Me.lblTrackNum.TabIndex = 5
+        Me.lblTrackNum.Text = "1"
         '
         'frmDeviceFinderClean
         '
@@ -1136,21 +1277,25 @@ Partial Class frmDeviceFinderClean
         CType(Me.Splitter2_3, System.ComponentModel.ISupportInitialize).EndInit()
         Me.Splitter2_3.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
-        Me.ToolStrip4.ResumeLayout(False)
-        Me.ToolStrip4.PerformLayout()
-        CType(Me.picBox, System.ComponentModel.ISupportInitialize).EndInit()
-        Me.StatusStrip2.ResumeLayout(False)
-        Me.StatusStrip2.PerformLayout()
         Me.Splitter3_1.Panel1.ResumeLayout(False)
         Me.Splitter3_1.Panel2.ResumeLayout(False)
         CType(Me.Splitter3_1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.Splitter3_1.ResumeLayout(False)
+        Me.ToolStrip4.ResumeLayout(False)
+        Me.ToolStrip4.PerformLayout()
         Me.TableLayoutPanel1.ResumeLayout(False)
+        CType(Me.picBoxNext, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.picBoxPrev, System.ComponentModel.ISupportInitialize).EndInit()
         Me.Panel1.ResumeLayout(False)
         Me.Panel1.PerformLayout()
+        CType(Me.picBox, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.StatusStrip2.ResumeLayout(False)
+        Me.StatusStrip2.PerformLayout()
         Me.Panel2.ResumeLayout(False)
+        Me.FlowLayoutPanel1.ResumeLayout(False)
         Me.Panel3.ResumeLayout(False)
         Me.Panel4.ResumeLayout(False)
+        Me.Panel5.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -1251,7 +1396,6 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents lblDuration As System.Windows.Forms.ToolStripStatusLabel
     Friend WithEvents pbDuration As System.Windows.Forms.ToolStripProgressBar
     Friend WithEvents Panel2 As System.Windows.Forms.Panel
-    Friend WithEvents Panel4 As System.Windows.Forms.Panel
     Friend WithEvents btnPause As System.Windows.Forms.Button
     Friend WithEvents btnPrev As System.Windows.Forms.Button
     Friend WithEvents btnStop As System.Windows.Forms.Button
@@ -1260,7 +1404,21 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents Panel3 As System.Windows.Forms.Panel
     Friend WithEvents lblTitle As System.Windows.Forms.Label
     Friend WithEvents lblArtist As System.Windows.Forms.Label
-    Friend WithEvents lblTrackNum As System.Windows.Forms.Label
+    Friend WithEvents lblQueueInfo As System.Windows.Forms.Label
     Friend WithEvents lblAlbum As System.Windows.Forms.Label
     Friend WithEvents lblDevice As System.Windows.Forms.Label
+    Friend WithEvents picBoxNext As System.Windows.Forms.PictureBox
+    Friend WithEvents picBoxPrev As System.Windows.Forms.PictureBox
+    Friend WithEvents FlowLayoutPanel1 As System.Windows.Forms.FlowLayoutPanel
+    Friend WithEvents Panel4 As System.Windows.Forms.Panel
+    Friend WithEvents lblTrackNumPrev As System.Windows.Forms.Label
+    Friend WithEvents lblAlbumPrev As System.Windows.Forms.Label
+    Friend WithEvents lblArtistPrev As System.Windows.Forms.Label
+    Friend WithEvents lblTitlePrev As System.Windows.Forms.Label
+    Friend WithEvents Panel5 As System.Windows.Forms.Panel
+    Friend WithEvents lblTrackNumNext As System.Windows.Forms.Label
+    Friend WithEvents lblAlbumNext As System.Windows.Forms.Label
+    Friend WithEvents lblArtistNext As System.Windows.Forms.Label
+    Friend WithEvents lblTitleNext As System.Windows.Forms.Label
+    Friend WithEvents lblTrackNum As System.Windows.Forms.Label
 End Class

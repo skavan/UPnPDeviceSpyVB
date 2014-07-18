@@ -10,8 +10,9 @@ Public Class debugForm
 
 #Region "Initialization & CleanUp"
     Private Sub debugForm_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        EventLogger.Enabled = False
         RemoveHandler EventLogger.OnEvent, AddressOf eventLogger_OnEvent
+        EventLogger.Enabled = False
+
     End Sub
 
     Private Sub debugForm_Load(sender As Object, e As EventArgs) Handles Me.Load

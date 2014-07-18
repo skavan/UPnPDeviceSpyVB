@@ -117,7 +117,7 @@ Public Class Player
         Dim ns As XNamespace = "urn:schemas-upnp-org:metadata-1-0/AVT/"
         Dim r As XNamespace = "urn:schemas-rinconnetworks-com:metadata-1-0/"
         Dim instance As XElement = xEvent.Element(ns + "InstanceID")
-
+        Dim lastCurrentTrack As TrackInfo = CurrentTrack
         EventLogger.Log(Me, EventLogEntryType.Warning, "ProcessChangeEvent Begun: " & newState)
 
         ' We can receive other types of change events here. But not everyone has a TransportState - lets try Current Track Duration Instead
@@ -160,9 +160,9 @@ Public Class Player
             '// deal with TrackInfo stuff
             '// if the track has changed - push the current track into the prior slot.
             Dim tempTrack As TrackInfo = TrackInfo.Parse(PositionInfo.TrackMetaData, Device.BaseURL.ToString)
-            If CurrentTrack.MetaData <> tempTrack.MetaData Then
+            If lastCurrentTrack.Title <> tempTrack.Title Then
                 '// we're playing a new track
-                PreviousTrack = CurrentTrack
+                PreviousTrack = lastCurrentTrack
                 CurrentTrack = tempTrack
             Else
                 CurrentTrack = tempTrack        '// silly, since in theory they are the same...
@@ -171,7 +171,9 @@ Public Class Player
             EventLogger.Log(Me, EventLogEntryType.Warning, "Num Tracks: " & MediaInfo.NrTracks)
             '// Let's try and get the next track info information. 1st choice is from the newly available media info object. 2nd choice is from the EventChange MetaData
             If MediaInfo.NextURIMetaData <> NOT_IMPLEMENTED Then
-                NextTrack = TrackInfo.Parse(MediaInfo.NextURIMetaData, Device.BaseURL.ToString)
+                If MediaInfo.NextURIMetaData <> "" Then
+                    NextTrack = TrackInfo.Parse(MediaInfo.NextURIMetaData, Device.BaseURL.ToString)
+                End If
             ElseIf GetAttributeValue(instance, r + "NextTrackMetaData", "val") <> "NOT_IMPLEMENTED" Then
                 NextTrack = TrackInfo.Parse(GetAttributeValue(instance, r + "NextTrackMetaData", "val"), Device.BaseURL.ToString)
             End If

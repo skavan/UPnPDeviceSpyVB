@@ -85,14 +85,14 @@ Public Class frmDeviceFinderClean
         'InstanceTracker.Display()
 
         'EventLogger.ShowAll = True
-
+        AddHandler player.StateChanged, AddressOf player_StateChanged
         GuiResizing()
     End Sub
 
     Private Sub CleanUp()
         'InstanceTracker.Enabled = False
         'InstanceTracker.ActiveForm.Close()
-
+        RemoveHandler player.StateChanged, AddressOf player_StateChanged
         player = Nothing
         Debug.Print("Exiting.....")
         disc.SaveSettings()
@@ -632,38 +632,51 @@ Public Class frmDeviceFinderClean
 
 
 
-    Private Sub player_StateChanged(obj As Player, eventType As Player.ePlayerStateChangeType) Handles player.StateChanged
+    Private Sub player_StateChanged(obj As Player, eventType As Player.ePlayerStateChangeType)
         'Debug.Print("Player State Change")
         If eventType = vbDeviceSpy.Player.ePlayerStateChangeType.PollingEvent Then
             EventLogger.Log(Me, EventLogEntryType.FailureAudit, obj.CurrentTime.ToString)
         End If
-        MyBase.Invoke(New PlayerStateChangeHandler(AddressOf UpdatePlayerInfo), obj)
-    End Sub
 
+        MyBase.Invoke(New PlayerStateChangeHandler(AddressOf UpdatePlayerInfo), obj)
+
+
+    End Sub
+    Private Sub UpdateTrackInfo(track As TrackInfo, lblTit As Label, lblArt As Label, lblAlb As Label, lblTrk As Label, pic As PictureBox)
+        lblTit.Text = track.Title
+
+        If track.AlbumArtist = "" Then
+            lblArt.Text = track.Artist
+        ElseIf track.Artist = "" Then
+            lblArt.Text = track.Artist
+        Else
+            If track.Artist = track.AlbumArtist Then
+                lblArt.Text = track.Artist
+            Else
+                lblArt.Text = track.Artist & "/" & track.AlbumArtist
+            End If
+        End If
+
+        lblAlb.Text = track.Album
+        lblTrk.Text = track.TrackNumber
+
+        If pic.ImageLocation IsNot Nothing Then
+            If pic.ImageLocation <> track.AlbumArtURI Then
+                pic.ImageLocation = track.AlbumArtURI
+            End If
+        Else
+            pic.ImageLocation = track.AlbumArtURI
+        End If
+
+    End Sub
     Private Sub UpdatePlayerInfo(obj As Player)
         propGrid1.SelectedObject = obj
-        lblAlbum.Text = obj.CurrentTrack.Album
-        lblTitle.Text = obj.CurrentTrack.Title
-        If obj.CurrentTrack.AlbumArtist = "" Then
-            lblArtist.Text = obj.CurrentTrack.Artist
-        ElseIf obj.CurrentTrack.Artist = "" Then
-            lblArtist.Text = obj.CurrentTrack.Artist
-        Else
-            If obj.CurrentTrack.Artist = obj.CurrentTrack.AlbumArtist Then
-                lblArtist.Text = obj.CurrentTrack.Artist
-            Else
-                lblArtist.Text = obj.CurrentTrack.Artist & "/" & obj.CurrentTrack.AlbumArtist
-            End If
-        End If
-        lblTrackNum.Text = obj.PositionInfo.TrackIndex & " of " & obj.MediaInfo.NrTracks
-        If picBox.ImageLocation IsNot Nothing Then
-            If picBox.ImageLocation <> obj.CurrentTrack.AlbumArtURI Then
-                picBox.ImageLocation = obj.CurrentTrack.AlbumArtURI
-            End If
-        Else
-            picBox.ImageLocation = obj.CurrentTrack.AlbumArtURI
-        End If
 
+        UpdateTrackInfo(obj.CurrentTrack, lblTitle, lblArtist, lblAlbum, lblTrackNum, picBox)
+        UpdateTrackInfo(obj.NextTrack, lblTitleNext, lblArtistNext, lblAlbumNext, lblTrackNumNext, picBoxNext)
+        UpdateTrackInfo(obj.PreviousTrack, lblTitlePrev, lblArtistPrev, lblAlbumPrev, lblTrackNumPrev, picBoxPrev)
+
+        lblQueueInfo.Text = "Queue " & obj.PositionInfo.TrackIndex & " of " & obj.MediaInfo.NrTracks
 
         lblDuration.Text = String.Format("{0}/{1}", obj.CurrentTime, obj.Duration)
         If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentTime.TotalSeconds Then
