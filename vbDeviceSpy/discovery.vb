@@ -123,7 +123,7 @@ Public Class discovery
             scp.Devices.Clear()
             scp = Nothing
         End If
-        
+
     End Sub
 
     Sub SaveSettings()
@@ -151,18 +151,20 @@ Public Class discovery
         My.Settings.SavedDevices = savedDevices
     End Sub
 
-    Sub LoadSettings()
+    Sub LoadSettings(bForceLoad As Boolean)
         Dim savedDevices As SavedDevices = My.Settings.SavedDevices
-        For Each savedDevice As SavedDevice In savedDevices
-            Select Case savedDevice.ManagedDeviceType
-                Case eManagedDeviceType.compoundDevice
-                    ForceAddDevice(savedDevice.LocationURL, True)
-                    ForceAddDevice(savedDevice.LinkedLocationURL, True)
+        If bForceLoad Then
+            For Each savedDevice As SavedDevice In savedDevices
+                Select Case savedDevice.ManagedDeviceType
+                    Case eManagedDeviceType.compoundDevice
+                        ForceAddDevice(savedDevice.LocationURL, True)
+                        ForceAddDevice(savedDevice.LinkedLocationURL, True)
 
-                Case eManagedDeviceType.avTranportDevice, eManagedDeviceType.completeDevice
-                    ForceAddDevice(savedDevice.LocationURL, True)
-            End Select
-        Next
+                    Case eManagedDeviceType.avTranportDevice, eManagedDeviceType.completeDevice
+                        ForceAddDevice(savedDevice.LocationURL, True)
+                End Select
+            Next
+        End If
     End Sub
 
 #End Region

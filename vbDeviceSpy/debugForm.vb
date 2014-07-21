@@ -3,6 +3,8 @@ Imports System.Xml
 
 Public Class debugForm
     Delegate Sub HandleOnEvent(LogType As EventLogEntryType, origin As Object, StackTrace As String, LogMessage As String)
+    Delegate Sub HandleOnShutDown()
+
     Dim dataTable As New DataTable
     Dim dataView As DataView
     Public ipFilter As String = "XXXX"
@@ -39,8 +41,12 @@ Public Class debugForm
         isLogging = True
         'DataGridView1.DataSource = dataTable.Select(BuildFilter)
     End Sub
+
+    Private Sub HandlesShutDown()
+        Me.Close()
+    End Sub
 #End Region
- 
+
 #Region "Callback & Event Processing"
     Private Sub eventLogger_OnEvent(LogType As EventLogEntryType, origin As Object, StackTrace As String, LogMessage As String)
         Me.Invoke(New HandleOnEvent(AddressOf OnEvent), {LogType, origin.ToString, StackTrace, LogMessage})
@@ -58,6 +64,10 @@ Public Class debugForm
         'DataGridView1.Rows(0).Selected = True
     End Sub
 
+    '// External Method to Shutdown the Form
+    Public Sub ShutDown()
+        Me.Invoke(New HandleOnShutDown(AddressOf HandlesShutDown))
+    End Sub
 #End Region
 
 #Region "General Methods and Utility Functions"
@@ -121,7 +131,7 @@ Public Class debugForm
         Return base
     End Function
 
-    
+
 
 #End Region
 
@@ -156,6 +166,6 @@ Public Class debugForm
 
 #End Region
 
-    
+
 
 End Class

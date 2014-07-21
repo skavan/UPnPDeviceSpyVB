@@ -13,6 +13,8 @@ Public Class frmDeviceFinderClean
     Public WithEvents player As New Player
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
 
+    Dim myThread As Threading.Thread
+
     Private SubscribedList As New ArrayList
 
     Private Categories As New Dictionary(Of String, String)
@@ -25,7 +27,8 @@ Public Class frmDeviceFinderClean
     Private Const AVTRANSPORTDEVICE = "AV Transport Device: "
     Private Const COMPOUNDDEVICE = "Compound Device: "
 
-    Dim myDebugForm As New debugForm 'splashform is the form you want to be seperate from main ui thread
+    Private Const STARTUPMODE = 0   '// 0 is auto, 1 is manual
+    Dim myDebugForm As debugForm 'splashform is the form you want to be seperate from main ui thread
 
 #Region "GUI Management"
 
@@ -85,57 +88,124 @@ Public Class frmDeviceFinderClean
         'InstanceTracker.Display()
 
         'EventLogger.ShowAll = True
-        AddHandler player.StateChanged, AddressOf player_StateChanged
+        AddHandler player.StateChanged, AddressOf player_OnStateChanged
+        AutoLoad()
         GuiResizing()
     End Sub
+
+    Private Sub AutoLoad()
+
+        If My.Settings.SavedDevices IsNot Nothing Then
+            '// we have some savedDevices
+            If My.Settings.SavedDevices.Count = 0 Then
+                '// but actually w2e don't - so do a network scan
+                disc.BeginNetworkScan()
+            Else
+                '// otherwise process and auto-load
+                disc.LoadSettings(True)
+            End If
+            'Else
+        Else
+            '// we have no SavedDevices - so do a network scan
+            disc.BeginNetworkScan()
+        End If
+    End Sub
+
 
     Private Sub CleanUp()
         'InstanceTracker.Enabled = False
         'InstanceTracker.ActiveForm.Close()
-        RemoveHandler player.StateChanged, AddressOf player_StateChanged
+        RemoveHandler player.StateChanged, AddressOf player_OnStateChanged
         player = Nothing
         Debug.Print("Exiting.....")
         disc.SaveSettings()
         disc.CleanUp()
-
-
         disc = Nothing
+        KillDebug()
 
+    End Sub
 
+    Private Sub KillDebug()
+        If myThread.IsAlive Then
+            myDebugForm.ShutDown()
+            myDebugForm = Nothing
+        End If
     End Sub
 
     Private Sub ShowDebug()
 
-        Dim myThread As New Threading.Thread(AddressOf debugForm.ShowDialog)
+        '// if its uninited, init it.
+        If myDebugForm Is Nothing Then
+            myDebugForm = New debugForm
+        End If
+
+        '// if the thread doesn't exist, make it else kill and restart.
+        If myThread Is Nothing Then
+            myThread = New Threading.Thread(AddressOf myDebugForm.ShowDialog)
+        Else
+            myThread.Abort()
+            myThread = Nothing
+            myThread = New Threading.Thread(AddressOf myDebugForm.ShowDialog)
+        End If
+
+
+        'Dim myThread As New Threading.Thread()
         myThread.Start()
+
     End Sub
+
+    Private Function CheckIsDebugVisible() As Boolean
+        If myDebugForm IsNot Nothing Then
+            Return myDebugForm.Visible
+        Else
+            Return False
+        End If
+    End Function
+
+
+    '// Form Closing
+    Private Sub frmDeviceFinderClean_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        CleanUp()
+    End Sub
+
+    '// Form Loading
+    Private Sub frmDeviceFinder_Load(sender As Object, e As EventArgs) Handles Me.Load
+        Init()
+    End Sub
+
+
 #End Region
 
 #Region "Callbacks"
 
-    Private Sub disc_deviceDiscoveryEvent(device As UPnPDevice, deviceChangeEvent As discovery.eDeviceDiscoveryEvent) Handles disc.deviceDiscoveryEvent
+    '// called when a discovery event occurs - either a device being added or removed as well as a device becoming "managed". Invokes AddDeviceToTree as wellas managedDeviceAdded
+    Private Sub disc_OnDeviceDiscovery(device As UPnPDevice, deviceChangeEvent As discovery.eDeviceDiscoveryEvent) Handles disc.deviceDiscoveryEvent
 
         Select Case deviceChangeEvent
             Case discovery.eDeviceDiscoveryEvent.deviceAdded
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, False})
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf HandlesDeviceDiscovery_AddDevice), {device, False})
                 'Me.AddDeviceToTree(device)
             Case discovery.eDeviceDiscoveryEvent.deviceRemoved
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), New Object() {device, False})
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.HandlesDeviceDiscovery_RemoveDevice), New Object() {device, False})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceAdded
                 EventLogger.Log(Me, EventLogEntryType.Information, device.FriendlyName & " " & deviceChangeEvent.ToString)
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf AddDeviceToTree), {device, True})
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf HandlesDeviceDiscovery_AddDevice), {device, True})
             Case discovery.eDeviceDiscoveryEvent.managedDeviceRemoved
-                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.RemovedDeviceFromTree), {device, True})
+                MyBase.Invoke(New DeviceChangeHandler(AddressOf Me.HandlesDeviceDiscovery_RemoveDevice), {device, True})
         End Select
 
     End Sub
 
-    Private Sub disc_serviceDataEvent(service As UPnPService, sender As UPnPStateVariable, EventValue As Object) Handles disc.serviceDataEvent
-        MyBase.Invoke(New ServiceDataChangedHandler(AddressOf Me.HandleEvents), {service, sender, EventValue})
-        Debug.Print("Service Data:" & service.ServiceURN & "-" & EventValue.ToString)
+    '// we subscribe to events in two places in this whole system. This subscription happens in the discovery module to allow debuging and monitoring.
+    '// but it is better and more detailed to use the subscription under a "managed" player.
+
+    '// this callback delivers data from the service - but then invokes a method to handle the data -- HandleServiceEvents
+    Private Sub disc_OnServiceDataReceived(service As UPnPService, sender As UPnPStateVariable, EventValue As Object) Handles disc.serviceDataEvent
+        MyBase.Invoke(New ServiceDataChangedHandler(AddressOf Me.HandlesServiceDataReceived), {service, sender, EventValue})
     End Sub
 
-    Private Sub disc_serviceSubscriptionEvent(device As UPnPDevice, service As UPnPService, serviceChangeEvent As discovery.eServiceSubscriptionEvent) Handles disc.serviceSubscriptionEvent
+    '// this callback signals when a servcie is successfully subscribed to. It then invokes processing in the UpdateSubscribedService method.
+    Private Sub disc_OnServiceSubscription(device As UPnPDevice, service As UPnPService, serviceChangeEvent As discovery.eServiceSubscriptionEvent) Handles disc.serviceSubscriptionEvent
         Select Case serviceChangeEvent
             Case discovery.eServiceSubscriptionEvent.serviceOnSubscribe
                 Debug.Print("service subscribed:" & service.ServiceURN)
@@ -150,15 +220,33 @@ Public Class frmDeviceFinderClean
 
     End Sub
 
+    '// called when a player has a changed Event, whether its a result of polling or otherwise. This function then invokes processing of the data in the UpdatePlayerInfo Method.
+    Private Sub player_OnStateChanged(obj As Player, eventType As Player.ePlayerStateChangeType)
+        'Debug.Print("Player State Change")
+        If eventType = vbDeviceSpy.Player.ePlayerStateChangeType.PollingEvent Then
+            EventLogger.Log(Me, EventLogEntryType.FailureAudit, obj.CurrentTime.ToString)
+        End If
+
+        MyBase.Invoke(New PlayerStateChangeHandler(AddressOf Handles_PlayerStateChanged), obj)
+    End Sub
+
 #End Region
 
-#Region "Form and GUI Events"
+#Region "Form and GUI Events (Discovery System & General)"
 
+    '// Popup Menu and Associated menu Items for ManagedTree (RIGHT CLICK)
     Private Sub ManagedTree_MouseDown(sender As Object, e As MouseEventArgs) Handles ManagedTree.MouseDown
         ResetPopupMenuItems()
         ProcessNodePopupMenu(ManagedTree, e)
     End Sub
 
+    '// Popup Menu and Associated menu Items for deviceTree (RIGHT CLICK)
+    Private Sub deviceTree_MouseDown(sender As Object, e As MouseEventArgs) Handles deviceTree.MouseDown
+        ResetPopupMenuItems()
+        ProcessNodePopupMenu(deviceTree, e)
+    End Sub
+
+    '// Reset all popup menu items to default state before processing them
     Private Sub ResetPopupMenuItems()
         Me.eventSubscribeMenuItem.Visible = False
         Me.invokeActionMenuItem.Visible = False
@@ -175,7 +263,7 @@ Public Class frmDeviceFinderClean
         Me.removeDeviceMenuItem.Visible = False
     End Sub
 
-    '// do the hard work of setting up the popup menu
+    '// the main method to do the hard work of setting up the popup menu (for both managed and unmanaged tree's)
     Private Sub ProcessNodePopupMenu(tree As TreeView, e As MouseEventArgs)
         ResetPopupMenuItems()
         Dim node As TreeNode = tree.GetNodeAt(e.X, e.Y)                                                                         '// get the node
@@ -275,13 +363,7 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
-    '// Popup Menu and Associated menu Items for deviceTree
-    Private Sub deviceTree_MouseDown(sender As Object, e As MouseEventArgs) Handles deviceTree.MouseDown
-        ResetPopupMenuItems()
-        ProcessNodePopupMenu(deviceTree, e)
-
-    End Sub
-
+    '// Menu Click - Add a device to Managed Device System
     Private Sub AddManagedDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles AddManagedDeviceMenuItem.Click
         Dim menuItem As MenuItem = sender
         If menuItem.Text.Contains(COMPLETEDEVICE) Then
@@ -291,6 +373,7 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
+    '// Menu Click - Special case, Add a "COMPOUND" or "AVTRANSPORT" device to the ManagedDevice System
     Private Sub AddCompoundDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles AddCompoundDeviceMenuItem.Click
         Dim menuItem As MenuItem = sender
         If menuItem.Text.Contains(AVTRANSPORTDEVICE) Then
@@ -300,27 +383,21 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
-
-
-
-    '// Get detailed data on an item
-    Private Sub OnSelectedItem(sender As Object, e As TreeViewEventArgs) Handles deviceTree.AfterSelect
-        Dim node As TreeNode = Me.deviceTree.SelectedNode
+    '// Tree Click - Get detailed data on a Tree item
+    Private Sub OnSelectedItem(sender As Object, e As TreeViewEventArgs) Handles deviceTree.AfterSelect, ManagedTree.AfterSelect
+        Dim tree As TreeView = sender
+        Dim node As TreeNode = tree.SelectedNode
         Dim Items As ArrayList = SetListInfo(node.Tag)
         Me.listInfo.Sorting = SortOrder.Ascending
         Me.listInfo.Items.Clear()
         Me.listInfo.Items.AddRange(CType(Items.ToArray(GetType(ListViewItem)), ListViewItem()))
     End Sub
 
-    '// on exit
-    Private Sub frmDeviceFinderClean_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        CleanUp()
+    '// Exit the App
+    Private Sub menuExit_Click(sender As Object, e As EventArgs) Handles menuExit.Click
+        Me.Close()
     End Sub
 
-    '// on load
-    Private Sub frmDeviceFinder_Load(sender As Object, e As EventArgs) Handles Me.Load
-        Init()
-    End Sub
 
     '// on GUI resize
     Private Sub ToolStrip1_SizeChanged(sender As Object, e As EventArgs) Handles ToolStrip1.SizeChanged
@@ -390,7 +467,8 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
-    Private Sub removeDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles removeDeviceMenuItem.Click
+    '// remove a device from the managed device tree
+    Private Sub removeManagedDeviceMenuItem_Click(sender As Object, e As EventArgs) Handles removeDeviceMenuItem.Click
         Dim menuItem As MenuItem = sender
         If menuItem.GetContextMenu.SourceControl Is deviceTree Then
 
@@ -400,6 +478,7 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
+    '// tab selection (tab managed selected) -- probably need to build this into a more general any tab change handling method
     Private Sub tabManaged_Selected(sender As Object, e As EventArgs) Handles tabControl1.Selected
         Debug.Print("TAB" & tabControl1.SelectedIndex)
         'If tabControl1.SelectedIndex = 1 Then
@@ -419,6 +498,7 @@ Public Class frmDeviceFinderClean
 
     End Sub
 
+    '// Kick off an Active Player System
     Private Sub ActivatePlayerMenu_Click(sender As Object, e As EventArgs) Handles ActivatePlayerMenu.Click
         Dim menuItem As MenuItem = sender
         player.SetDevice(menuItem.Tag)
@@ -429,9 +509,43 @@ Public Class frmDeviceFinderClean
 
     End Sub
 
+
+
+    Private Sub mnuGo_Click(sender As Object, e As EventArgs) Handles mnuGo.Click
+        '// do a Network scan -- need to add some more thoughtful code. perhaps into the BeginNetworkScan code (ie to check if its already been run).
+        disc.BeginNetworkScan()
+    End Sub
+
+#End Region
+#Region "Form and GUI Events (Player System)"
+
+    Private Sub btnPlay_Click(sender As Object, e As EventArgs) Handles btnPlay.Click
+        player.Play()
+    End Sub
+
+    Private Sub btnNext_Click(sender As Object, e As EventArgs) Handles btnNext.Click
+        player.Next()
+    End Sub
+
+    Private Sub btnPrev_Click(sender As Object, e As EventArgs) Handles btnPrev.Click
+        player.Previous()
+    End Sub
+
+    Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
+        player.Stop()
+    End Sub
+
+    Private Sub btnPause_Click(sender As Object, e As EventArgs) Handles btnPause.Click
+        player.Pause()
+    End Sub
+
+
+
 #End Region
 
-#Region "Tree and ListInfo Routines"
+
+
+#Region "Tree and Other GUI Related Routines"
 
     Private Sub HighlightSubscribedNode(node As TreeNode, bHighlight As Boolean)
         If bHighlight Then
@@ -504,41 +618,6 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
-    Protected Sub AddDeviceToTree(device As UPnPDevice, isManagedTree As Boolean)
-        Dim parentNode As TreeNode
-        If isManagedTree Then
-            parentNode = CreateTreeNode(device, False)
-        Else
-            parentNode = CreateTreeNode(device, True)
-        End If
-
-        UpdateTree(device, parentNode, isManagedTree)
-        'MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
-    End Sub
-
-    Protected Sub RemovedDeviceFromTree(device As UPnPDevice, isManagedTree As Boolean)
-        Dim root As TreeNode
-        If isManagedTree Then
-            root = GetManagedCategoryNode(ManagedRootNodes, ManagedCategories, device, "OTHER")
-        Else
-            root = GetCategoryNode(RootNodes, Categories, device, "OTHER")
-        End If
-        'Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
-        Dim TempList As ArrayList = New ArrayList()
-        Dim en As IEnumerator = root.Nodes.GetEnumerator()
-        While en.MoveNext()
-            Dim tn As TreeNode = CType(en.Current, TreeNode)
-            If (CType(tn.Tag, UPnPDevice)).UniqueDeviceName = device.UniqueDeviceName Then
-                TempList.Add(tn)
-            End If
-        End While
-        For x As Integer = 0 To TempList.Count - 1
-            Dim i As TreeNode = CType(TempList(x), TreeNode)
-            Me.CleanTags(i)
-            root.Nodes.Remove(i)
-        Next
-    End Sub
-
     Protected Sub UpdateTree(device As UPnPDevice, node As TreeNode, isManagedTree As Boolean)
         Dim root As TreeNode
         If isManagedTree Then
@@ -598,50 +677,6 @@ Public Class frmDeviceFinderClean
         End While
     End Sub
 
-    Private Sub HandleEvents(service As UPnPService, sender As UPnPStateVariable, EventValue As Object)
-
-        Dim eventSource As String = service.ParentDevice.FriendlyName + "/" + service.ServiceID
-        Dim eventValue1 As String = UPnPService.SerializeObjectInstance(EventValue)
-        If eventValue1 = "" Then
-            eventValue1 = "(Empty)"
-        End If
-
-        'Debug.Print(eventSource & "|" & EventValue)
-        Dim now As DateTime = DateTime.Now
-        Dim i As ListViewItem = New ListViewItem(New String() {now.ToShortTimeString(), eventSource, sender.Name, EventValue})
-        i.Tag = now
-        Me.eventListView.Items.Insert(0, i)
-        If Me.deviceTree.SelectedNode IsNot Nothing Then
-            If Me.deviceTree.SelectedNode.Tag.[GetType]() Is GetType(UPnPStateVariable) Then
-                If (CType(Me.deviceTree.SelectedNode.Tag, UPnPStateVariable)).SendEvent Then
-                    If Me.deviceTree.SelectedNode.Tag.GetHashCode() = sender.GetHashCode() Then
-                        SetListInfo(Me.deviceTree.SelectedNode.Tag)
-                    End If
-                End If
-            End If
-        End If
-        Dim fNode As TreeNode = Me.deviceTree.Nodes(0).FirstNode
-        While fNode IsNot Nothing
-            Me.ScanDeviceNode(fNode, sender.OwningService)
-            fNode = fNode.NextNode
-        End While
-
-    End Sub
-
-#End Region
-
-
-
-    Private Sub player_StateChanged(obj As Player, eventType As Player.ePlayerStateChangeType)
-        'Debug.Print("Player State Change")
-        If eventType = vbDeviceSpy.Player.ePlayerStateChangeType.PollingEvent Then
-            EventLogger.Log(Me, EventLogEntryType.FailureAudit, obj.CurrentTime.ToString)
-        End If
-
-        MyBase.Invoke(New PlayerStateChangeHandler(AddressOf UpdatePlayerInfo), obj)
-
-
-    End Sub
     Private Sub UpdateTrackInfo(track As TrackInfo, lblTit As Label, lblArt As Label, lblAlb As Label, lblTrk As Label, pic As PictureBox)
         lblTit.Text = track.Title
 
@@ -669,7 +704,82 @@ Public Class frmDeviceFinderClean
         End If
 
     End Sub
-    Private Sub UpdatePlayerInfo(obj As Player)
+
+
+#End Region
+
+
+#Region "Methods invoked by delegate from Callbacks"
+
+    '// this method handles incoming events from a service subscribed from the discovery system (as opposed to the player system)...
+    Private Sub HandlesServiceDataReceived(service As UPnPService, sender As UPnPStateVariable, EventValue As Object)
+
+        Dim eventSource As String = service.ParentDevice.FriendlyName + "/" + service.ServiceID
+        Dim eventValue1 As String = UPnPService.SerializeObjectInstance(EventValue)
+        If eventValue1 = "" Then
+            eventValue1 = "(Empty)"
+        End If
+
+        Dim now As DateTime = DateTime.Now
+        Dim i As ListViewItem = New ListViewItem(New String() {now.ToShortTimeString(), eventSource, sender.Name, EventValue})
+        i.Tag = now
+        Me.eventListView.Items.Insert(0, i)
+        If Me.deviceTree.SelectedNode IsNot Nothing Then
+            If Me.deviceTree.SelectedNode.Tag.[GetType]() Is GetType(UPnPStateVariable) Then
+                If (CType(Me.deviceTree.SelectedNode.Tag, UPnPStateVariable)).SendEvent Then
+                    If Me.deviceTree.SelectedNode.Tag.GetHashCode() = sender.GetHashCode() Then
+                        SetListInfo(Me.deviceTree.SelectedNode.Tag)
+                    End If
+                End If
+            End If
+        End If
+        Dim fNode As TreeNode = Me.deviceTree.Nodes(0).FirstNode
+        While fNode IsNot Nothing
+            Me.ScanDeviceNode(fNode, sender.OwningService)
+            fNode = fNode.NextNode
+        End While
+
+    End Sub
+
+    '// this method adds a device to a visual tree.
+    Protected Sub HandlesDeviceDiscovery_AddDevice(device As UPnPDevice, isManagedTree As Boolean)
+        Dim parentNode As TreeNode
+        If isManagedTree Then
+            parentNode = CreateTreeNode(device, False)
+        Else
+            parentNode = CreateTreeNode(device, True)
+        End If
+
+        UpdateTree(device, parentNode, isManagedTree)
+        'MyBase.Invoke(New UpdateTreeDelegate(AddressOf Me.UpdateTree), args)
+    End Sub
+
+    '// this method removes a device from a tree
+    Protected Sub HandlesDeviceDiscovery_RemoveDevice(device As UPnPDevice, isManagedTree As Boolean)
+        Dim root As TreeNode
+        If isManagedTree Then
+            root = GetManagedCategoryNode(ManagedRootNodes, ManagedCategories, device, "OTHER")
+        Else
+            root = GetCategoryNode(RootNodes, Categories, device, "OTHER")
+        End If
+        'Dim root As TreeNode = GetCategoryNode(RootNodes, Categories, device)
+        Dim TempList As ArrayList = New ArrayList()
+        Dim en As IEnumerator = root.Nodes.GetEnumerator()
+        While en.MoveNext()
+            Dim tn As TreeNode = CType(en.Current, TreeNode)
+            If (CType(tn.Tag, UPnPDevice)).UniqueDeviceName = device.UniqueDeviceName Then
+                TempList.Add(tn)
+            End If
+        End While
+        For x As Integer = 0 To TempList.Count - 1
+            Dim i As TreeNode = CType(TempList(x), TreeNode)
+            Me.CleanTags(i)
+            root.Nodes.Remove(i)
+        Next
+    End Sub
+
+    '// this method updates visual elements related to the player object
+    Private Sub Handles_PlayerStateChanged(obj As Player)
         propGrid1.SelectedObject = obj
 
         UpdateTrackInfo(obj.CurrentTrack, lblTitle, lblArtist, lblAlbum, lblTrackNum, picBox)
@@ -685,6 +795,9 @@ Public Class frmDeviceFinderClean
 
         lblDevice.Text = player.Device.FriendlyName
     End Sub
+
+#End Region
+
 
     Private Sub propGrid1_Click(sender As Object, e As EventArgs) Handles propGrid1.SelectedGridItemChanged
         Dim item As Object = propGrid1.SelectedGridItem.Value
@@ -717,42 +830,21 @@ Public Class frmDeviceFinderClean
         End If
     End Sub
 
-    Private Sub btnPlay_Click(sender As Object, e As EventArgs) Handles btnPlay.Click
-        player.Play()
-    End Sub
-
-    Private Sub btnNext_Click(sender As Object, e As EventArgs) Handles btnNext.Click
-        player.Next()
-    End Sub
-
-    Private Sub btnPrev_Click(sender As Object, e As EventArgs) Handles btnPrev.Click
-        player.Previous()
-    End Sub
-
-    Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
-        player.Stop()
-    End Sub
-
-    Private Sub btnPause_Click(sender As Object, e As EventArgs) Handles btnPause.Click
-        player.Pause()
-    End Sub
-
-
-    Private Sub mnuGo_Click(sender As Object, e As EventArgs) Handles mnuGo.Click
-        If My.Settings.SavedDevices IsNot Nothing Then
-            If My.Settings.SavedDevices.Count = 0 Then
-                disc.BeginNetworkScan()
-            Else
-                disc.LoadSettings()
-            End If
-            'Else
-        Else
-
-        End If
-        'disc.BeginNetworkScan()
-    End Sub
 
     Private Sub lblDevice_Click(sender As Object, e As EventArgs) Handles lblDevice.Click
         player.StopPolling()
+    End Sub
+
+    Private Sub showDebugInfoMenuItem_Click(sender As Object, e As EventArgs) Handles showDebugInfoMenuItem.Click
+        '// it is available, so kill it.
+        If CheckIsDebugVisible() Then
+            KillDebug()
+            showDebugInfoMenuItem.Checked = False
+        Else
+            ShowDebug()
+            showDebugInfoMenuItem.Checked = True
+            '// it's not available - show it!
+        End If
+
     End Sub
 End Class

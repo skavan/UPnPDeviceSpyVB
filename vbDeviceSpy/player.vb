@@ -38,7 +38,7 @@ Public Class Player
         SubscriptionEvent
         PollingEvent
     End Enum
-    
+
 #End Region
 
 #Region "Initialize & Cleanup System"
@@ -345,7 +345,7 @@ Public Class Player
 
 #Region "AVTransport Get Info (playerstatus, mediainfo, positioninfo"
 
-    Public Function GetTransportInfo() As cTransportInfo       
+    Public Function GetTransportInfo() As cTransportInfo
         Dim arguments = New UPnPArgument(3) {}
         arguments(0) = New UPnPArgument("InstanceID", 0UI)
         arguments(1) = New UPnPArgument("CurrentTransportState", "")
