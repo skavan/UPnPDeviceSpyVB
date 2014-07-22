@@ -778,7 +778,7 @@ Public Class TrackInfo
     Public Property TrackNumber As String
     Public Property TrackCount As String
     Public Property Genre As String
-    Public Property AlbumDate As String
+    Public Property Year As String
 
     Public Property ItemClass As String
     Public Property StreamContent As String
@@ -817,7 +817,7 @@ Public Class TrackInfo
             response.AlbumArtURI = GetElementValue(item, upnp + "albumArtURI")
             response.Artist = GetElementValue(item, dc + "creator")
             response.Title = GetElementValue(item, dc + "title")
-            response.AlbumDate = GetElementValue(item, dc + "date")
+            response.Year = GetElementValue(item, dc + "date")
             response.Album = GetElementValue(item, upnp + "album")
             response.AlbumArtist = GetElementValue(item, r + "albumArtist")
             response.TrackNumber = GetElementValue(item, upnp + "originalTrackNumber")
