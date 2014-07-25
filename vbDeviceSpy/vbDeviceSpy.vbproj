@@ -78,13 +78,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="discovery.vb" />
-    <Compile Include="Form1.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form1.Designer.vb">
-      <DependentUpon>Form1.vb</DependentUpon>
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="formForceAdd.Designer.vb">
       <DependentUpon>formForceAdd.vb</DependentUpon>
     </Compile>
@@ -95,12 +88,6 @@
       <DependentUpon>frmDeviceFinderClean.vb</DependentUpon>
     </Compile>
     <Compile Include="frmDeviceFinderClean.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmDeviceFinder.Designer.vb">
-      <DependentUpon>frmDeviceFinder.vb</DependentUpon>
-    </Compile>
-    <Compile Include="frmDeviceFinder.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="modUtils.vb" />
@@ -120,20 +107,16 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="player.vb" />
+    <Compile Include="Player2.vb" />
     <Compile Include="savedSettings.vb" />
+    <Compile Include="UPNPPlayer.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="debugForm.resx">
       <DependentUpon>debugForm.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.vb</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmDeviceFinderClean.resx">
       <DependentUpon>frmDeviceFinderClean.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmDeviceFinder.resx">
-      <DependentUpon>frmDeviceFinder.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>

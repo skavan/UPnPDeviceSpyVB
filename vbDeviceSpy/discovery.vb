@@ -85,21 +85,7 @@ Public Class discovery
 
     End Sub
 #End Region
-    '// remove a 'Managed' device.
-    Public Sub RemoveManagedDevice(device As UPnPDevice)
-        Dim deviceType As eManagedDeviceType = eManagedDeviceType.completeDevice
-        If device.User IsNot Nothing Then deviceType = device.User
-        Select Case deviceType
-            Case eManagedDeviceType.completeDevice, eManagedDeviceType.avTranportDevice
-                ManagedDevices.Remove(device)
-            Case eManagedDeviceType.compoundDevice
-                ManagedDevices.Remove(device)
-                UnlinkCompoundDevice(device)
-        End Select
-        '// let all clients know!
-        RaiseEvent deviceDiscoveryEvent(device, eDeviceDiscoveryEvent.managedDeviceRemoved)
 
-    End Sub
 
 #Region "Initialization, Settings and Cleanup Routines"
 
@@ -395,6 +381,21 @@ Public Class discovery
 
     End Sub
 
+    '// remove a 'Managed' device.
+    Public Sub RemoveManagedDevice(device As UPnPDevice)
+        Dim deviceType As eManagedDeviceType = eManagedDeviceType.completeDevice
+        If device.User IsNot Nothing Then deviceType = device.User
+        Select Case deviceType
+            Case eManagedDeviceType.completeDevice, eManagedDeviceType.avTranportDevice
+                ManagedDevices.Remove(device)
+            Case eManagedDeviceType.compoundDevice
+                ManagedDevices.Remove(device)
+                UnlinkCompoundDevice(device)
+        End Select
+        '// let all clients know!
+        RaiseEvent deviceDiscoveryEvent(device, eDeviceDiscoveryEvent.managedDeviceRemoved)
+
+    End Sub
 #End Region
 
 #Region "Device & Service Utility Functions"

@@ -7,10 +7,10 @@ Public Class frmDeviceFinderClean
     Public Delegate Sub DeviceChangeHandler(device As UPnPDevice, isManagedTree As Boolean)
     Public Delegate Sub ServiceSubscribedHandler(device As UPnPDevice, service As UPnPService, bUnsubscribe As Boolean)
     Public Delegate Sub ServiceDataChangedHandler(service As UPnPService, sender As UPnPStateVariable, data As Object)
-    Public Delegate Sub PlayerStateChangeHandler(player As Player)
+    Public Delegate Sub PlayerStateChangeHandler(player As UPNPPlayer)
 
     Public WithEvents disc As New discovery
-    Public WithEvents player As New Player
+    Public WithEvents player As New UPNPPlayer
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
 
     Dim myThread As Threading.Thread
@@ -221,10 +221,10 @@ Public Class frmDeviceFinderClean
     End Sub
 
     '// called when a player has a changed Event, whether its a result of polling or otherwise. This function then invokes processing of the data in the UpdatePlayerInfo Method.
-    Private Sub player_OnStateChanged(obj As Player, eventType As Player.ePlayerStateChangeType)
+    Private Sub player_OnStateChanged(obj As UPNPPlayer, eventType As UPNPPlayer.ePlayerStateChangeType)
         'Debug.Print("Player State Change")
-        If eventType = vbDeviceSpy.Player.ePlayerStateChangeType.PollingEvent Then
-            EventLogger.Log(Me, EventLogEntryType.FailureAudit, obj.CurrentTime.ToString)
+        If eventType = vbDeviceSpy.UPNPPlayer.ePlayerStateChangeType.PollingEvent Then
+            EventLogger.Log(Me, EventLogEntryType.FailureAudit, obj.CurrentTrackTime.ToString)
         End If
 
         MyBase.Invoke(New PlayerStateChangeHandler(AddressOf Handles_PlayerStateChanged), obj)
@@ -677,7 +677,7 @@ Public Class frmDeviceFinderClean
         End While
     End Sub
 
-    Private Sub UpdateTrackInfo(track As TrackInfo, lblTit As Label, lblArt As Label, lblAlb As Label, lblTrk As Label, pic As PictureBox)
+    Private Sub UpdateTrackInfo(track As TrackInfoEx, lblTit As Label, lblArt As Label, lblAlb As Label, lblTrk As Label, pic As PictureBox)
         lblTit.Text = track.Title
 
         If track.AlbumArtist = "" Then
@@ -779,7 +779,7 @@ Public Class frmDeviceFinderClean
     End Sub
 
     '// this method updates visual elements related to the player object
-    Private Sub Handles_PlayerStateChanged(obj As Player)
+    Private Sub Handles_PlayerStateChanged(obj As UPNPPlayer)
         propGrid1.SelectedObject = obj
 
         UpdateTrackInfo(obj.CurrentTrack, lblTitle, lblArtist, lblAlbum, lblTrackNum, picBox)
@@ -788,9 +788,12 @@ Public Class frmDeviceFinderClean
 
         lblQueueInfo.Text = "Queue " & obj.PositionInfo.TrackIndex & " of " & obj.MediaInfo.NrTracks
 
-        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentTime, obj.Duration)
-        If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentTime.TotalSeconds Then
-            pbDuration.Value = (obj.CurrentTime.TotalSeconds / obj.Duration.TotalSeconds) * 100
+        lblDuration.Text = String.Format("{0}/{1}", obj.CurrentTrackTime, obj.CurrentTrackDuration)
+        If obj.PositionInfo.TrackDuration.TotalSeconds > obj.CurrentTrackTime.TotalSeconds Then
+
+            If obj.CurrentTrackDuration.TotalSeconds > 0 Then
+                pbDuration.Value = (obj.CurrentTrackTime.TotalSeconds / obj.CurrentTrackDuration.TotalSeconds) * 100
+            End If
         End If
 
         lblDevice.Text = player.Device.FriendlyName
