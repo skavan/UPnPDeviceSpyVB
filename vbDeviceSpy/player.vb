@@ -740,7 +740,7 @@ Public Class TrackInfo_Old
             If rawAlbumArtURI.StartsWith("http") Then
                 Return rawAlbumArtURI
             End If
-            Dim art As String = rawAlbumArtURI
+            Dim art As String = System.Uri.UnescapeDataString(rawAlbumArtURI)
 
             Dim baseUri As Uri = New Uri(documentURL)
             Dim path As String = art.Substring(0, art.IndexOf("?"c))

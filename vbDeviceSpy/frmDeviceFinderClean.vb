@@ -1,5 +1,6 @@
 ﻿Imports OpenSource.UPnP
 Imports OpenSource.Utilities
+Imports System.Drawing
 
 Public Class frmDeviceFinderClean
 
@@ -26,7 +27,7 @@ Public Class frmDeviceFinderClean
     Private Const COMPLETEDEVICE = "Complete Device: "
     Private Const AVTRANSPORTDEVICE = "AV Transport Device: "
     Private Const COMPOUNDDEVICE = "Compound Device: "
-
+    Private WithEvents tt As ToolTip
     Private Const STARTUPMODE = 0   '// 0 is auto, 1 is manual
     Dim myDebugForm As debugForm 'splashform is the form you want to be seperate from main ui thread
 
@@ -517,6 +518,7 @@ Public Class frmDeviceFinderClean
     End Sub
 
 #End Region
+
 #Region "Form and GUI Events (Player System)"
 
     Private Sub btnPlay_Click(sender As Object, e As EventArgs) Handles btnPlay.Click
@@ -542,8 +544,6 @@ Public Class frmDeviceFinderClean
 
 
 #End Region
-
-
 
 #Region "Tree and Other GUI Related Routines"
 
@@ -702,12 +702,14 @@ Public Class frmDeviceFinderClean
         Else
             pic.ImageLocation = track.AlbumArtURI
         End If
+        Dim tt As New ToolTip()
+        tt.SetToolTip(pic, track.AlbumArtURI)
+
 
     End Sub
 
 
 #End Region
-
 
 #Region "Methods invoked by delegate from Callbacks"
 
@@ -849,5 +851,9 @@ Public Class frmDeviceFinderClean
             '// it's not available - show it!
         End If
 
+    End Sub
+
+    Private Sub picBox_Click(sender As Object, e As EventArgs) Handles picBox.Click
+        Clipboard.SetText(picBox.ImageLocation)
     End Sub
 End Class
