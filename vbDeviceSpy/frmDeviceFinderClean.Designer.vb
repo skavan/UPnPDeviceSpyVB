@@ -145,7 +145,17 @@ Partial Class frmDeviceFinderClean
         Me.lblAlbumNext = New System.Windows.Forms.Label()
         Me.lblArtistNext = New System.Windows.Forms.Label()
         Me.lblTitleNext = New System.Windows.Forms.Label()
+        Me.TableLayoutPanel2 = New System.Windows.Forms.TableLayoutPanel()
+        Me.PictureBox1 = New System.Windows.Forms.PictureBox()
+        Me.Panel6 = New System.Windows.Forms.Panel()
+        Me.btnLoadUnecoded = New System.Windows.Forms.Button()
+        Me.btnUnencode = New System.Windows.Forms.Button()
+        Me.btnLoadURL = New System.Windows.Forms.Button()
+        Me.SplitContainer1 = New System.Windows.Forms.SplitContainer()
+        Me.TextBox1 = New System.Windows.Forms.TextBox()
+        Me.TextBox2 = New System.Windows.Forms.TextBox()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
+        Me.btnClearText = New System.Windows.Forms.Button()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -194,6 +204,13 @@ Partial Class frmDeviceFinderClean
         Me.Panel3.SuspendLayout()
         Me.Panel4.SuspendLayout()
         Me.Panel5.SuspendLayout()
+        Me.TableLayoutPanel2.SuspendLayout()
+        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.Panel6.SuspendLayout()
+        CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.SplitContainer1.Panel1.SuspendLayout()
+        Me.SplitContainer1.Panel2.SuspendLayout()
+        Me.SplitContainer1.SuspendLayout()
         Me.SuspendLayout()
         '
         'mainMenu
@@ -710,7 +727,7 @@ Partial Class frmDeviceFinderClean
         Me.tabManaged.Location = New System.Drawing.Point(4, 26)
         Me.tabManaged.Name = "tabManaged"
         Me.tabManaged.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabManaged.Size = New System.Drawing.Size(1278, 734)
+        Me.tabManaged.Size = New System.Drawing.Size(1278, 742)
         Me.tabManaged.TabIndex = 1
         Me.tabManaged.Text = "Managed Devices"
         '
@@ -727,7 +744,7 @@ Partial Class frmDeviceFinderClean
         'splitter2_1.Panel2
         '
         Me.splitter2_1.Panel2.Controls.Add(Me.Splitter2_2)
-        Me.splitter2_1.Size = New System.Drawing.Size(1272, 728)
+        Me.splitter2_1.Size = New System.Drawing.Size(1272, 736)
         Me.splitter2_1.SplitterDistance = 394
         Me.splitter2_1.TabIndex = 2
         '
@@ -775,8 +792,8 @@ Partial Class frmDeviceFinderClean
         'Splitter2_2.Panel2
         '
         Me.Splitter2_2.Panel2.Controls.Add(Me.RichTextBox1)
-        Me.Splitter2_2.Size = New System.Drawing.Size(874, 728)
-        Me.Splitter2_2.SplitterDistance = 511
+        Me.Splitter2_2.Size = New System.Drawing.Size(874, 736)
+        Me.Splitter2_2.SplitterDistance = 516
         Me.Splitter2_2.TabIndex = 0
         '
         'Splitter2_3
@@ -793,7 +810,7 @@ Partial Class frmDeviceFinderClean
         'Splitter2_3.Panel2
         '
         Me.Splitter2_3.Panel2.Controls.Add(Me.propGrid2)
-        Me.Splitter2_3.Size = New System.Drawing.Size(874, 511)
+        Me.Splitter2_3.Size = New System.Drawing.Size(874, 516)
         Me.Splitter2_3.SplitterDistance = 480
         Me.Splitter2_3.TabIndex = 0
         '
@@ -802,7 +819,7 @@ Partial Class frmDeviceFinderClean
         Me.propGrid1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.propGrid1.Location = New System.Drawing.Point(0, 0)
         Me.propGrid1.Name = "propGrid1"
-        Me.propGrid1.Size = New System.Drawing.Size(480, 511)
+        Me.propGrid1.Size = New System.Drawing.Size(480, 516)
         Me.propGrid1.TabIndex = 0
         '
         'propGrid2
@@ -810,7 +827,7 @@ Partial Class frmDeviceFinderClean
         Me.propGrid2.Dock = System.Windows.Forms.DockStyle.Fill
         Me.propGrid2.Location = New System.Drawing.Point(0, 0)
         Me.propGrid2.Name = "propGrid2"
-        Me.propGrid2.Size = New System.Drawing.Size(390, 511)
+        Me.propGrid2.Size = New System.Drawing.Size(390, 516)
         Me.propGrid2.TabIndex = 1
         '
         'RichTextBox1
@@ -818,7 +835,7 @@ Partial Class frmDeviceFinderClean
         Me.RichTextBox1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.RichTextBox1.Location = New System.Drawing.Point(0, 0)
         Me.RichTextBox1.Name = "RichTextBox1"
-        Me.RichTextBox1.Size = New System.Drawing.Size(874, 213)
+        Me.RichTextBox1.Size = New System.Drawing.Size(874, 216)
         Me.RichTextBox1.TabIndex = 0
         Me.RichTextBox1.Text = ""
         '
@@ -892,6 +909,7 @@ Partial Class frmDeviceFinderClean
         Me.TableLayoutPanel1.Controls.Add(Me.Panel2, 2, 0)
         Me.TableLayoutPanel1.Controls.Add(Me.Panel4, 0, 2)
         Me.TableLayoutPanel1.Controls.Add(Me.Panel5, 1, 2)
+        Me.TableLayoutPanel1.Controls.Add(Me.TableLayoutPanel2, 2, 1)
         Me.TableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.TableLayoutPanel1.Location = New System.Drawing.Point(0, 0)
         Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
@@ -1219,6 +1237,113 @@ Partial Class frmDeviceFinderClean
         Me.lblTitleNext.TabIndex = 0
         Me.lblTitleNext.Text = "Label1"
         '
+        'TableLayoutPanel2
+        '
+        Me.TableLayoutPanel2.BackColor = System.Drawing.SystemColors.ControlDarkDark
+        Me.TableLayoutPanel2.ColumnCount = 2
+        Me.TableLayoutPanel2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 65.0463!))
+        Me.TableLayoutPanel2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 34.9537!))
+        Me.TableLayoutPanel2.Controls.Add(Me.PictureBox1, 0, 1)
+        Me.TableLayoutPanel2.Controls.Add(Me.Panel6, 1, 1)
+        Me.TableLayoutPanel2.Controls.Add(Me.SplitContainer1, 0, 0)
+        Me.TableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TableLayoutPanel2.Location = New System.Drawing.Point(439, 407)
+        Me.TableLayoutPanel2.Name = "TableLayoutPanel2"
+        Me.TableLayoutPanel2.RowCount = 2
+        Me.TableLayoutPanel1.SetRowSpan(Me.TableLayoutPanel2, 2)
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.3681!))
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 69.6319!))
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+        Me.TableLayoutPanel2.Size = New System.Drawing.Size(432, 326)
+        Me.TableLayoutPanel2.TabIndex = 10
+        '
+        'PictureBox1
+        '
+        Me.PictureBox1.BackColor = System.Drawing.SystemColors.ActiveCaption
+        Me.PictureBox1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PictureBox1.Location = New System.Drawing.Point(3, 102)
+        Me.PictureBox1.Name = "PictureBox1"
+        Me.PictureBox1.Size = New System.Drawing.Size(275, 221)
+        Me.PictureBox1.TabIndex = 1
+        Me.PictureBox1.TabStop = False
+        '
+        'Panel6
+        '
+        Me.Panel6.BackColor = System.Drawing.SystemColors.ActiveBorder
+        Me.Panel6.Controls.Add(Me.btnClearText)
+        Me.Panel6.Controls.Add(Me.btnLoadUnecoded)
+        Me.Panel6.Controls.Add(Me.btnUnencode)
+        Me.Panel6.Controls.Add(Me.btnLoadURL)
+        Me.Panel6.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.Panel6.Location = New System.Drawing.Point(284, 102)
+        Me.Panel6.Name = "Panel6"
+        Me.Panel6.Size = New System.Drawing.Size(145, 221)
+        Me.Panel6.TabIndex = 2
+        '
+        'btnLoadUnecoded
+        '
+        Me.btnLoadUnecoded.Location = New System.Drawing.Point(13, 92)
+        Me.btnLoadUnecoded.Name = "btnLoadUnecoded"
+        Me.btnLoadUnecoded.Size = New System.Drawing.Size(119, 37)
+        Me.btnLoadUnecoded.TabIndex = 2
+        Me.btnLoadUnecoded.Text = "Unencode URL"
+        Me.btnLoadUnecoded.UseVisualStyleBackColor = True
+        '
+        'btnUnencode
+        '
+        Me.btnUnencode.Location = New System.Drawing.Point(12, 52)
+        Me.btnUnencode.Name = "btnUnencode"
+        Me.btnUnencode.Size = New System.Drawing.Size(119, 37)
+        Me.btnUnencode.TabIndex = 1
+        Me.btnUnencode.Text = "Unencode URL"
+        Me.btnUnencode.UseVisualStyleBackColor = True
+        '
+        'btnLoadURL
+        '
+        Me.btnLoadURL.Location = New System.Drawing.Point(12, 9)
+        Me.btnLoadURL.Name = "btnLoadURL"
+        Me.btnLoadURL.Size = New System.Drawing.Size(119, 37)
+        Me.btnLoadURL.TabIndex = 0
+        Me.btnLoadURL.Text = "LoadURL"
+        Me.btnLoadURL.UseVisualStyleBackColor = True
+        '
+        'SplitContainer1
+        '
+        Me.TableLayoutPanel2.SetColumnSpan(Me.SplitContainer1, 2)
+        Me.SplitContainer1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.SplitContainer1.Location = New System.Drawing.Point(3, 3)
+        Me.SplitContainer1.Name = "SplitContainer1"
+        Me.SplitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal
+        '
+        'SplitContainer1.Panel1
+        '
+        Me.SplitContainer1.Panel1.Controls.Add(Me.TextBox1)
+        '
+        'SplitContainer1.Panel2
+        '
+        Me.SplitContainer1.Panel2.Controls.Add(Me.TextBox2)
+        Me.SplitContainer1.Size = New System.Drawing.Size(426, 93)
+        Me.SplitContainer1.SplitterDistance = 41
+        Me.SplitContainer1.TabIndex = 3
+        '
+        'TextBox1
+        '
+        Me.TextBox1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TextBox1.Location = New System.Drawing.Point(0, 0)
+        Me.TextBox1.Multiline = True
+        Me.TextBox1.Name = "TextBox1"
+        Me.TextBox1.Size = New System.Drawing.Size(426, 41)
+        Me.TextBox1.TabIndex = 0
+        '
+        'TextBox2
+        '
+        Me.TextBox2.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TextBox2.Location = New System.Drawing.Point(0, 0)
+        Me.TextBox2.Multiline = True
+        Me.TextBox2.Name = "TextBox2"
+        Me.TextBox2.Size = New System.Drawing.Size(426, 48)
+        Me.TextBox2.TabIndex = 1
+        '
         'imgMediumIcons
         '
         Me.imgMediumIcons.ImageStream = CType(resources.GetObject("imgMediumIcons.ImageStream"), System.Windows.Forms.ImageListStreamer)
@@ -1228,6 +1353,15 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(2, "bookmark-new-3.ico")
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
+        '
+        'btnClearText
+        '
+        Me.btnClearText.Location = New System.Drawing.Point(12, 178)
+        Me.btnClearText.Name = "btnClearText"
+        Me.btnClearText.Size = New System.Drawing.Size(119, 37)
+        Me.btnClearText.TabIndex = 3
+        Me.btnClearText.Text = "Clear Box"
+        Me.btnClearText.UseVisualStyleBackColor = True
         '
         'frmDeviceFinderClean
         '
@@ -1296,6 +1430,15 @@ Partial Class frmDeviceFinderClean
         Me.Panel3.ResumeLayout(False)
         Me.Panel4.ResumeLayout(False)
         Me.Panel5.ResumeLayout(False)
+        Me.TableLayoutPanel2.ResumeLayout(False)
+        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.Panel6.ResumeLayout(False)
+        Me.SplitContainer1.Panel1.ResumeLayout(False)
+        Me.SplitContainer1.Panel1.PerformLayout()
+        Me.SplitContainer1.Panel2.ResumeLayout(False)
+        Me.SplitContainer1.Panel2.PerformLayout()
+        CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.SplitContainer1.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -1421,4 +1564,14 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents lblArtistNext As System.Windows.Forms.Label
     Friend WithEvents lblTitleNext As System.Windows.Forms.Label
     Friend WithEvents lblTrackNum As System.Windows.Forms.Label
+    Friend WithEvents TableLayoutPanel2 As System.Windows.Forms.TableLayoutPanel
+    Friend WithEvents TextBox1 As System.Windows.Forms.TextBox
+    Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
+    Friend WithEvents Panel6 As System.Windows.Forms.Panel
+    Friend WithEvents btnUnencode As System.Windows.Forms.Button
+    Friend WithEvents btnLoadURL As System.Windows.Forms.Button
+    Friend WithEvents btnLoadUnecoded As System.Windows.Forms.Button
+    Friend WithEvents SplitContainer1 As System.Windows.Forms.SplitContainer
+    Friend WithEvents TextBox2 As System.Windows.Forms.TextBox
+    Friend WithEvents btnClearText As System.Windows.Forms.Button
 End Class

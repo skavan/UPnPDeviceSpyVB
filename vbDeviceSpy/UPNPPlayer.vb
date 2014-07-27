@@ -645,8 +645,14 @@ Public Class UPNPPlayer
             Dim baseUri As Uri = New Uri(documentURL)
             Dim path As String = art.Substring(0, art.IndexOf("?"c))
             Dim qs As String = art.Substring(art.IndexOf("?"c))
+            qs = Uri.UnescapeDataString(qs)
             Dim builder As New UriBuilder(baseUri.Scheme, baseUri.Host, baseUri.Port, path, qs)
-            Return builder.Uri.OriginalString
+            Dim final As String = builder.Uri.OriginalString
+            If final.Contains("amz") Then
+                Debug.Print(final)
+                'final = "http://192.168.1.57:1400/getaa?s=1&u=x-sonos-http:amz%3atr%3a6e7d4599-56bb-45ba-ae0f-f071b7e57e54.mp3%3fsid%3d26%26flags%3d32"
+            End If
+            Return final
         End If
 
     End Function

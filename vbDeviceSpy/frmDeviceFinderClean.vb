@@ -697,11 +697,15 @@ Public Class frmDeviceFinderClean
 
         If pic.ImageLocation IsNot Nothing Then
             If pic.ImageLocation <> track.AlbumArtURI Then
-                pic.ImageLocation = track.AlbumArtURI
+                If track.AlbumArtURI <> "" Then pic.ImageLocation = track.AlbumArtURI
+
+
             End If
         Else
-            pic.ImageLocation = track.AlbumArtURI
+            If track.AlbumArtURI <> "" Then pic.ImageLocation = track.AlbumArtURI
         End If
+        If track.AlbumArtURI <> "" Then TextBox1.Text = track.AlbumArtURI
+        Debug.Print("TARGET URI [" & track.AlbumArtURI & "]")
         Dim tt As New ToolTip()
         tt.SetToolTip(pic, track.AlbumArtURI)
 
@@ -855,5 +859,28 @@ Public Class frmDeviceFinderClean
 
     Private Sub picBox_Click(sender As Object, e As EventArgs) Handles picBox.Click
         Clipboard.SetText(picBox.ImageLocation)
+    End Sub
+
+    Private Sub RichTextBox1_TextChanged(sender As Object, e As EventArgs) Handles RichTextBox1.Click
+        Clipboard.SetText(RichTextBox1.Rtf, TextDataFormat.Rtf)
+    End Sub
+
+    Private Sub btnLoadURL_Click(sender As Object, e As EventArgs) Handles btnLoadURL.Click
+        PictureBox1.ImageLocation = TextBox1.Text
+    End Sub
+
+    Private Sub btnUnencode_Click(sender As Object, e As EventArgs) Handles btnUnencode.Click
+        Debug.Print(TextBox1.Text)
+        TextBox2.Text = Uri.UnescapeDataString(TextBox1.Text)
+        Debug.Print(TextBox2.Text)
+    End Sub
+
+    Private Sub btnLoadUnecoded_Click(sender As Object, e As EventArgs) Handles btnLoadUnecoded.Click
+        PictureBox1.ImageLocation = TextBox2.Text
+    End Sub
+
+    Private Sub btnClearText_Click(sender As Object, e As EventArgs) Handles btnClearText.Click
+        TextBox1.Text = ""
+        TextBox2.Text = ""
     End Sub
 End Class
