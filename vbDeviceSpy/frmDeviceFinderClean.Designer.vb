@@ -110,6 +110,7 @@ Partial Class frmDeviceFinderClean
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
         Me.Splitter3_1 = New System.Windows.Forms.SplitContainer()
+        Me.wb = New System.Windows.Forms.WebBrowser()
         Me.ToolStrip4 = New System.Windows.Forms.ToolStrip()
         Me.ToolStripComboBox2 = New System.Windows.Forms.ToolStripComboBox()
         Me.ToolStripButton2 = New System.Windows.Forms.ToolStripButton()
@@ -148,6 +149,7 @@ Partial Class frmDeviceFinderClean
         Me.TableLayoutPanel2 = New System.Windows.Forms.TableLayoutPanel()
         Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.Panel6 = New System.Windows.Forms.Panel()
+        Me.btnClearText = New System.Windows.Forms.Button()
         Me.btnLoadUnecoded = New System.Windows.Forms.Button()
         Me.btnUnencode = New System.Windows.Forms.Button()
         Me.btnLoadURL = New System.Windows.Forms.Button()
@@ -155,7 +157,8 @@ Partial Class frmDeviceFinderClean
         Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.TextBox2 = New System.Windows.Forms.TextBox()
         Me.imgMediumIcons = New System.Windows.Forms.ImageList(Me.components)
-        Me.btnClearText = New System.Windows.Forms.Button()
+        Me.TabPage2 = New System.Windows.Forms.TabPage()
+        Me.RichTextBox2 = New System.Windows.Forms.RichTextBox()
         Me.StatusStrip1.SuspendLayout()
         Me.tabControl1.SuspendLayout()
         Me.tabAvailable.SuspendLayout()
@@ -211,6 +214,7 @@ Partial Class frmDeviceFinderClean
         Me.SplitContainer1.Panel1.SuspendLayout()
         Me.SplitContainer1.Panel2.SuspendLayout()
         Me.SplitContainer1.SuspendLayout()
+        Me.TabPage2.SuspendLayout()
         Me.SuspendLayout()
         '
         'mainMenu
@@ -487,16 +491,16 @@ Partial Class frmDeviceFinderClean
         'StatusStrip1
         '
         Me.StatusStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatus})
-        Me.StatusStrip1.Location = New System.Drawing.Point(0, 772)
+        Me.StatusStrip1.Location = New System.Drawing.Point(0, 764)
         Me.StatusStrip1.Name = "StatusStrip1"
-        Me.StatusStrip1.Size = New System.Drawing.Size(1286, 22)
+        Me.StatusStrip1.Size = New System.Drawing.Size(1286, 30)
         Me.StatusStrip1.TabIndex = 0
         Me.StatusStrip1.Text = "StatusStrip1"
         '
         'lblStatus
         '
         Me.lblStatus.Name = "lblStatus"
-        Me.lblStatus.Size = New System.Drawing.Size(121, 17)
+        Me.lblStatus.Size = New System.Drawing.Size(184, 25)
         Me.lblStatus.Text = "ToolStripStatusLabel1"
         '
         'tabControl1
@@ -504,21 +508,22 @@ Partial Class frmDeviceFinderClean
         Me.tabControl1.Controls.Add(Me.tabAvailable)
         Me.tabControl1.Controls.Add(Me.tabManaged)
         Me.tabControl1.Controls.Add(Me.TabPage1)
+        Me.tabControl1.Controls.Add(Me.TabPage2)
         Me.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.tabControl1.Location = New System.Drawing.Point(0, 0)
         Me.tabControl1.Name = "tabControl1"
         Me.tabControl1.SelectedIndex = 0
-        Me.tabControl1.Size = New System.Drawing.Size(1286, 772)
+        Me.tabControl1.Size = New System.Drawing.Size(1286, 764)
         Me.tabControl1.TabIndex = 1
         '
         'tabAvailable
         '
         Me.tabAvailable.BackColor = System.Drawing.SystemColors.Control
         Me.tabAvailable.Controls.Add(Me.splitter1_1)
-        Me.tabAvailable.Location = New System.Drawing.Point(4, 26)
+        Me.tabAvailable.Location = New System.Drawing.Point(4, 37)
         Me.tabAvailable.Name = "tabAvailable"
         Me.tabAvailable.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabAvailable.Size = New System.Drawing.Size(1278, 742)
+        Me.tabAvailable.Size = New System.Drawing.Size(1278, 723)
         Me.tabAvailable.TabIndex = 0
         Me.tabAvailable.Text = "Available UPnP Devices"
         '
@@ -536,7 +541,7 @@ Partial Class frmDeviceFinderClean
         'splitter1_1.Panel2
         '
         Me.splitter1_1.Panel2.Controls.Add(Me.splitter1_2)
-        Me.splitter1_1.Size = New System.Drawing.Size(1272, 736)
+        Me.splitter1_1.Size = New System.Drawing.Size(1272, 717)
         Me.splitter1_1.SplitterDistance = 394
         Me.splitter1_1.TabIndex = 1
         '
@@ -553,7 +558,7 @@ Partial Class frmDeviceFinderClean
         Me.deviceTree.Location = New System.Drawing.Point(0, 30)
         Me.deviceTree.Name = "deviceTree"
         Me.deviceTree.SelectedImageIndex = 0
-        Me.deviceTree.Size = New System.Drawing.Size(394, 706)
+        Me.deviceTree.Size = New System.Drawing.Size(394, 687)
         Me.deviceTree.TabIndex = 14
         '
         'ToolStrip1
@@ -575,7 +580,7 @@ Partial Class frmDeviceFinderClean
         Me.cmbSearch.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
         Me.cmbSearch.AutoSize = False
         Me.cmbSearch.Name = "cmbSearch"
-        Me.cmbSearch.Size = New System.Drawing.Size(200, 23)
+        Me.cmbSearch.Size = New System.Drawing.Size(200, 33)
         '
         'btnScan
         '
@@ -583,7 +588,7 @@ Partial Class frmDeviceFinderClean
         Me.btnScan.Image = CType(resources.GetObject("btnScan.Image"), System.Drawing.Image)
         Me.btnScan.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.btnScan.Name = "btnScan"
-        Me.btnScan.Size = New System.Drawing.Size(97, 27)
+        Me.btnScan.Size = New System.Drawing.Size(146, 27)
         Me.btnScan.Text = "Scan for Devices"
         '
         'splitter1_2
@@ -600,8 +605,8 @@ Partial Class frmDeviceFinderClean
         'splitter1_2.Panel2
         '
         Me.splitter1_2.Panel2.Controls.Add(Me.eventListView)
-        Me.splitter1_2.Size = New System.Drawing.Size(874, 736)
-        Me.splitter1_2.SplitterDistance = 409
+        Me.splitter1_2.Size = New System.Drawing.Size(874, 717)
+        Me.splitter1_2.SplitterDistance = 398
         Me.splitter1_2.TabIndex = 0
         '
         'splitter1_3
@@ -620,7 +625,7 @@ Partial Class frmDeviceFinderClean
         '
         Me.splitter1_3.Panel2.Controls.Add(Me.ManagedTree)
         Me.splitter1_3.Panel2.Controls.Add(Me.ToolStrip2)
-        Me.splitter1_3.Size = New System.Drawing.Size(874, 409)
+        Me.splitter1_3.Size = New System.Drawing.Size(874, 398)
         Me.splitter1_3.SplitterDistance = 480
         Me.splitter1_3.TabIndex = 0
         '
@@ -634,7 +639,7 @@ Partial Class frmDeviceFinderClean
         Me.listInfo.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
         Me.listInfo.Location = New System.Drawing.Point(0, 6)
         Me.listInfo.Name = "listInfo"
-        Me.listInfo.Size = New System.Drawing.Size(480, 403)
+        Me.listInfo.Size = New System.Drawing.Size(480, 392)
         Me.listInfo.TabIndex = 17
         Me.listInfo.UseCompatibleStateImageBehavior = False
         Me.listInfo.View = System.Windows.Forms.View.Details
@@ -662,7 +667,7 @@ Partial Class frmDeviceFinderClean
         Me.ManagedTree.Location = New System.Drawing.Point(0, 30)
         Me.ManagedTree.Name = "ManagedTree"
         Me.ManagedTree.SelectedImageIndex = 0
-        Me.ManagedTree.Size = New System.Drawing.Size(390, 379)
+        Me.ManagedTree.Size = New System.Drawing.Size(390, 368)
         Me.ManagedTree.TabIndex = 15
         '
         'ToolStrip2
@@ -680,7 +685,7 @@ Partial Class frmDeviceFinderClean
         'ToolStripLabel1
         '
         Me.ToolStripLabel1.Name = "ToolStripLabel1"
-        Me.ToolStripLabel1.Size = New System.Drawing.Size(103, 27)
+        Me.ToolStripLabel1.Size = New System.Drawing.Size(156, 27)
         Me.ToolStripLabel1.Text = "Managed Devices:"
         Me.ToolStripLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
@@ -695,7 +700,7 @@ Partial Class frmDeviceFinderClean
         Me.eventListView.Location = New System.Drawing.Point(0, 0)
         Me.eventListView.Name = "eventListView"
         Me.eventListView.ShowItemToolTips = True
-        Me.eventListView.Size = New System.Drawing.Size(874, 323)
+        Me.eventListView.Size = New System.Drawing.Size(874, 315)
         Me.eventListView.TabIndex = 18
         Me.eventListView.UseCompatibleStateImageBehavior = False
         Me.eventListView.View = System.Windows.Forms.View.Details
@@ -724,10 +729,10 @@ Partial Class frmDeviceFinderClean
         '
         Me.tabManaged.BackColor = System.Drawing.SystemColors.Control
         Me.tabManaged.Controls.Add(Me.splitter2_1)
-        Me.tabManaged.Location = New System.Drawing.Point(4, 26)
+        Me.tabManaged.Location = New System.Drawing.Point(4, 37)
         Me.tabManaged.Name = "tabManaged"
         Me.tabManaged.Padding = New System.Windows.Forms.Padding(3)
-        Me.tabManaged.Size = New System.Drawing.Size(1278, 742)
+        Me.tabManaged.Size = New System.Drawing.Size(1278, 723)
         Me.tabManaged.TabIndex = 1
         Me.tabManaged.Text = "Managed Devices"
         '
@@ -744,7 +749,7 @@ Partial Class frmDeviceFinderClean
         'splitter2_1.Panel2
         '
         Me.splitter2_1.Panel2.Controls.Add(Me.Splitter2_2)
-        Me.splitter2_1.Size = New System.Drawing.Size(1272, 736)
+        Me.splitter2_1.Size = New System.Drawing.Size(1272, 717)
         Me.splitter2_1.SplitterDistance = 394
         Me.splitter2_1.TabIndex = 2
         '
@@ -767,7 +772,7 @@ Partial Class frmDeviceFinderClean
         Me.ToolStripComboBox1.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
         Me.ToolStripComboBox1.AutoSize = False
         Me.ToolStripComboBox1.Name = "ToolStripComboBox1"
-        Me.ToolStripComboBox1.Size = New System.Drawing.Size(200, 23)
+        Me.ToolStripComboBox1.Size = New System.Drawing.Size(200, 33)
         '
         'ToolStripButton1
         '
@@ -775,7 +780,7 @@ Partial Class frmDeviceFinderClean
         Me.ToolStripButton1.Image = CType(resources.GetObject("ToolStripButton1.Image"), System.Drawing.Image)
         Me.ToolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButton1.Name = "ToolStripButton1"
-        Me.ToolStripButton1.Size = New System.Drawing.Size(97, 27)
+        Me.ToolStripButton1.Size = New System.Drawing.Size(146, 27)
         Me.ToolStripButton1.Text = "Scan for Devices"
         '
         'Splitter2_2
@@ -792,8 +797,8 @@ Partial Class frmDeviceFinderClean
         'Splitter2_2.Panel2
         '
         Me.Splitter2_2.Panel2.Controls.Add(Me.RichTextBox1)
-        Me.Splitter2_2.Size = New System.Drawing.Size(874, 736)
-        Me.Splitter2_2.SplitterDistance = 516
+        Me.Splitter2_2.Size = New System.Drawing.Size(874, 717)
+        Me.Splitter2_2.SplitterDistance = 502
         Me.Splitter2_2.TabIndex = 0
         '
         'Splitter2_3
@@ -810,7 +815,7 @@ Partial Class frmDeviceFinderClean
         'Splitter2_3.Panel2
         '
         Me.Splitter2_3.Panel2.Controls.Add(Me.propGrid2)
-        Me.Splitter2_3.Size = New System.Drawing.Size(874, 516)
+        Me.Splitter2_3.Size = New System.Drawing.Size(874, 502)
         Me.Splitter2_3.SplitterDistance = 480
         Me.Splitter2_3.TabIndex = 0
         '
@@ -819,7 +824,7 @@ Partial Class frmDeviceFinderClean
         Me.propGrid1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.propGrid1.Location = New System.Drawing.Point(0, 0)
         Me.propGrid1.Name = "propGrid1"
-        Me.propGrid1.Size = New System.Drawing.Size(480, 516)
+        Me.propGrid1.Size = New System.Drawing.Size(480, 502)
         Me.propGrid1.TabIndex = 0
         '
         'propGrid2
@@ -827,7 +832,7 @@ Partial Class frmDeviceFinderClean
         Me.propGrid2.Dock = System.Windows.Forms.DockStyle.Fill
         Me.propGrid2.Location = New System.Drawing.Point(0, 0)
         Me.propGrid2.Name = "propGrid2"
-        Me.propGrid2.Size = New System.Drawing.Size(390, 516)
+        Me.propGrid2.Size = New System.Drawing.Size(390, 502)
         Me.propGrid2.TabIndex = 1
         '
         'RichTextBox1
@@ -835,7 +840,7 @@ Partial Class frmDeviceFinderClean
         Me.RichTextBox1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.RichTextBox1.Location = New System.Drawing.Point(0, 0)
         Me.RichTextBox1.Name = "RichTextBox1"
-        Me.RichTextBox1.Size = New System.Drawing.Size(874, 216)
+        Me.RichTextBox1.Size = New System.Drawing.Size(874, 211)
         Me.RichTextBox1.TabIndex = 0
         Me.RichTextBox1.Text = ""
         '
@@ -843,10 +848,10 @@ Partial Class frmDeviceFinderClean
         '
         Me.TabPage1.BackColor = System.Drawing.SystemColors.Control
         Me.TabPage1.Controls.Add(Me.Splitter3_1)
-        Me.TabPage1.Location = New System.Drawing.Point(4, 26)
+        Me.TabPage1.Location = New System.Drawing.Point(4, 37)
         Me.TabPage1.Name = "TabPage1"
         Me.TabPage1.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage1.Size = New System.Drawing.Size(1278, 742)
+        Me.TabPage1.Size = New System.Drawing.Size(1278, 723)
         Me.TabPage1.TabIndex = 2
         Me.TabPage1.Text = "Player"
         '
@@ -858,14 +863,24 @@ Partial Class frmDeviceFinderClean
         '
         'Splitter3_1.Panel1
         '
+        Me.Splitter3_1.Panel1.Controls.Add(Me.wb)
         Me.Splitter3_1.Panel1.Controls.Add(Me.ToolStrip4)
         '
         'Splitter3_1.Panel2
         '
         Me.Splitter3_1.Panel2.Controls.Add(Me.TableLayoutPanel1)
-        Me.Splitter3_1.Size = New System.Drawing.Size(1272, 736)
+        Me.Splitter3_1.Size = New System.Drawing.Size(1272, 717)
         Me.Splitter3_1.SplitterDistance = 394
         Me.Splitter3_1.TabIndex = 3
+        '
+        'wb
+        '
+        Me.wb.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.wb.Location = New System.Drawing.Point(0, 30)
+        Me.wb.MinimumSize = New System.Drawing.Size(20, 20)
+        Me.wb.Name = "wb"
+        Me.wb.Size = New System.Drawing.Size(394, 687)
+        Me.wb.TabIndex = 1
         '
         'ToolStrip4
         '
@@ -886,7 +901,7 @@ Partial Class frmDeviceFinderClean
         Me.ToolStripComboBox2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
         Me.ToolStripComboBox2.AutoSize = False
         Me.ToolStripComboBox2.Name = "ToolStripComboBox2"
-        Me.ToolStripComboBox2.Size = New System.Drawing.Size(200, 23)
+        Me.ToolStripComboBox2.Size = New System.Drawing.Size(200, 33)
         '
         'ToolStripButton2
         '
@@ -894,7 +909,7 @@ Partial Class frmDeviceFinderClean
         Me.ToolStripButton2.Image = CType(resources.GetObject("ToolStripButton2.Image"), System.Drawing.Image)
         Me.ToolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButton2.Name = "ToolStripButton2"
-        Me.ToolStripButton2.Size = New System.Drawing.Size(97, 27)
+        Me.ToolStripButton2.Size = New System.Drawing.Size(146, 27)
         Me.ToolStripButton2.Text = "Scan for Devices"
         '
         'TableLayoutPanel1
@@ -917,15 +932,15 @@ Partial Class frmDeviceFinderClean
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 55.0!))
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-        Me.TableLayoutPanel1.Size = New System.Drawing.Size(874, 736)
+        Me.TableLayoutPanel1.Size = New System.Drawing.Size(874, 717)
         Me.TableLayoutPanel1.TabIndex = 0
         '
         'picBoxNext
         '
         Me.picBoxNext.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.picBoxNext.Location = New System.Drawing.Point(221, 407)
+        Me.picBoxNext.Location = New System.Drawing.Point(221, 397)
         Me.picBoxNext.Name = "picBoxNext"
-        Me.picBoxNext.Size = New System.Drawing.Size(212, 178)
+        Me.picBoxNext.Size = New System.Drawing.Size(212, 173)
         Me.picBoxNext.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.picBoxNext.TabIndex = 7
         Me.picBoxNext.TabStop = False
@@ -933,9 +948,9 @@ Partial Class frmDeviceFinderClean
         'picBoxPrev
         '
         Me.picBoxPrev.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.picBoxPrev.Location = New System.Drawing.Point(3, 407)
+        Me.picBoxPrev.Location = New System.Drawing.Point(3, 397)
         Me.picBoxPrev.Name = "picBoxPrev"
-        Me.picBoxPrev.Size = New System.Drawing.Size(212, 178)
+        Me.picBoxPrev.Size = New System.Drawing.Size(212, 173)
         Me.picBoxPrev.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.picBoxPrev.TabIndex = 6
         Me.picBoxPrev.TabStop = False
@@ -948,7 +963,7 @@ Partial Class frmDeviceFinderClean
         Me.Panel1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.Panel1.Location = New System.Drawing.Point(3, 3)
         Me.Panel1.Name = "Panel1"
-        Me.Panel1.Size = New System.Drawing.Size(430, 398)
+        Me.Panel1.Size = New System.Drawing.Size(430, 388)
         Me.Panel1.TabIndex = 2
         '
         'picBox
@@ -956,7 +971,7 @@ Partial Class frmDeviceFinderClean
         Me.picBox.Dock = System.Windows.Forms.DockStyle.Fill
         Me.picBox.Location = New System.Drawing.Point(0, 0)
         Me.picBox.Name = "picBox"
-        Me.picBox.Size = New System.Drawing.Size(430, 368)
+        Me.picBox.Size = New System.Drawing.Size(430, 358)
         Me.picBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.picBox.TabIndex = 2
         Me.picBox.TabStop = False
@@ -964,7 +979,7 @@ Partial Class frmDeviceFinderClean
         'StatusStrip2
         '
         Me.StatusStrip2.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblDuration, Me.pbDuration})
-        Me.StatusStrip2.Location = New System.Drawing.Point(0, 368)
+        Me.StatusStrip2.Location = New System.Drawing.Point(0, 358)
         Me.StatusStrip2.Name = "StatusStrip2"
         Me.StatusStrip2.Size = New System.Drawing.Size(430, 30)
         Me.StatusStrip2.SizingGrip = False
@@ -995,14 +1010,14 @@ Partial Class frmDeviceFinderClean
         Me.Panel2.Dock = System.Windows.Forms.DockStyle.Fill
         Me.Panel2.Location = New System.Drawing.Point(439, 3)
         Me.Panel2.Name = "Panel2"
-        Me.Panel2.Size = New System.Drawing.Size(432, 398)
+        Me.Panel2.Size = New System.Drawing.Size(432, 388)
         Me.Panel2.TabIndex = 5
         '
         'lblQueueInfo
         '
         Me.lblQueueInfo.Dock = System.Windows.Forms.DockStyle.Bottom
         Me.lblQueueInfo.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblQueueInfo.Location = New System.Drawing.Point(0, 271)
+        Me.lblQueueInfo.Location = New System.Drawing.Point(0, 261)
         Me.lblQueueInfo.Name = "lblQueueInfo"
         Me.lblQueueInfo.Size = New System.Drawing.Size(432, 37)
         Me.lblQueueInfo.TabIndex = 4
@@ -1017,7 +1032,7 @@ Partial Class frmDeviceFinderClean
         Me.FlowLayoutPanel1.Controls.Add(Me.btnNext)
         Me.FlowLayoutPanel1.Controls.Add(Me.btnPause)
         Me.FlowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom
-        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(0, 308)
+        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(0, 298)
         Me.FlowLayoutPanel1.Name = "FlowLayoutPanel1"
         Me.FlowLayoutPanel1.Size = New System.Drawing.Size(432, 60)
         Me.FlowLayoutPanel1.TabIndex = 6
@@ -1134,7 +1149,7 @@ Partial Class frmDeviceFinderClean
         '
         Me.lblDevice.Dock = System.Windows.Forms.DockStyle.Bottom
         Me.lblDevice.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblDevice.Location = New System.Drawing.Point(0, 368)
+        Me.lblDevice.Location = New System.Drawing.Point(0, 358)
         Me.lblDevice.Name = "lblDevice"
         Me.lblDevice.Size = New System.Drawing.Size(432, 30)
         Me.lblDevice.TabIndex = 4
@@ -1148,9 +1163,9 @@ Partial Class frmDeviceFinderClean
         Me.Panel4.Controls.Add(Me.lblArtistPrev)
         Me.Panel4.Controls.Add(Me.lblTitlePrev)
         Me.Panel4.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.Panel4.Location = New System.Drawing.Point(3, 591)
+        Me.Panel4.Location = New System.Drawing.Point(3, 576)
         Me.Panel4.Name = "Panel4"
-        Me.Panel4.Size = New System.Drawing.Size(212, 142)
+        Me.Panel4.Size = New System.Drawing.Size(212, 138)
         Me.Panel4.TabIndex = 8
         '
         'lblTrackNumPrev
@@ -1196,9 +1211,9 @@ Partial Class frmDeviceFinderClean
         Me.Panel5.Controls.Add(Me.lblArtistNext)
         Me.Panel5.Controls.Add(Me.lblTitleNext)
         Me.Panel5.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.Panel5.Location = New System.Drawing.Point(221, 591)
+        Me.Panel5.Location = New System.Drawing.Point(221, 576)
         Me.Panel5.Name = "Panel5"
-        Me.Panel5.Size = New System.Drawing.Size(212, 142)
+        Me.Panel5.Size = New System.Drawing.Size(212, 138)
         Me.Panel5.TabIndex = 9
         '
         'lblTrackNumNext
@@ -1247,23 +1262,23 @@ Partial Class frmDeviceFinderClean
         Me.TableLayoutPanel2.Controls.Add(Me.Panel6, 1, 1)
         Me.TableLayoutPanel2.Controls.Add(Me.SplitContainer1, 0, 0)
         Me.TableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.TableLayoutPanel2.Location = New System.Drawing.Point(439, 407)
+        Me.TableLayoutPanel2.Location = New System.Drawing.Point(439, 397)
         Me.TableLayoutPanel2.Name = "TableLayoutPanel2"
         Me.TableLayoutPanel2.RowCount = 2
         Me.TableLayoutPanel1.SetRowSpan(Me.TableLayoutPanel2, 2)
         Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.3681!))
         Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 69.6319!))
         Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-        Me.TableLayoutPanel2.Size = New System.Drawing.Size(432, 326)
+        Me.TableLayoutPanel2.Size = New System.Drawing.Size(432, 317)
         Me.TableLayoutPanel2.TabIndex = 10
         '
         'PictureBox1
         '
         Me.PictureBox1.BackColor = System.Drawing.SystemColors.ActiveCaption
         Me.PictureBox1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.PictureBox1.Location = New System.Drawing.Point(3, 102)
+        Me.PictureBox1.Location = New System.Drawing.Point(3, 99)
         Me.PictureBox1.Name = "PictureBox1"
-        Me.PictureBox1.Size = New System.Drawing.Size(275, 221)
+        Me.PictureBox1.Size = New System.Drawing.Size(275, 215)
         Me.PictureBox1.TabIndex = 1
         Me.PictureBox1.TabStop = False
         '
@@ -1275,10 +1290,19 @@ Partial Class frmDeviceFinderClean
         Me.Panel6.Controls.Add(Me.btnUnencode)
         Me.Panel6.Controls.Add(Me.btnLoadURL)
         Me.Panel6.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.Panel6.Location = New System.Drawing.Point(284, 102)
+        Me.Panel6.Location = New System.Drawing.Point(284, 99)
         Me.Panel6.Name = "Panel6"
-        Me.Panel6.Size = New System.Drawing.Size(145, 221)
+        Me.Panel6.Size = New System.Drawing.Size(145, 215)
         Me.Panel6.TabIndex = 2
+        '
+        'btnClearText
+        '
+        Me.btnClearText.Location = New System.Drawing.Point(12, 178)
+        Me.btnClearText.Name = "btnClearText"
+        Me.btnClearText.Size = New System.Drawing.Size(119, 37)
+        Me.btnClearText.TabIndex = 3
+        Me.btnClearText.Text = "Clear Box"
+        Me.btnClearText.UseVisualStyleBackColor = True
         '
         'btnLoadUnecoded
         '
@@ -1322,8 +1346,8 @@ Partial Class frmDeviceFinderClean
         'SplitContainer1.Panel2
         '
         Me.SplitContainer1.Panel2.Controls.Add(Me.TextBox2)
-        Me.SplitContainer1.Size = New System.Drawing.Size(426, 93)
-        Me.SplitContainer1.SplitterDistance = 41
+        Me.SplitContainer1.Size = New System.Drawing.Size(426, 90)
+        Me.SplitContainer1.SplitterDistance = 39
         Me.SplitContainer1.TabIndex = 3
         '
         'TextBox1
@@ -1332,7 +1356,7 @@ Partial Class frmDeviceFinderClean
         Me.TextBox1.Location = New System.Drawing.Point(0, 0)
         Me.TextBox1.Multiline = True
         Me.TextBox1.Name = "TextBox1"
-        Me.TextBox1.Size = New System.Drawing.Size(426, 41)
+        Me.TextBox1.Size = New System.Drawing.Size(426, 39)
         Me.TextBox1.TabIndex = 0
         '
         'TextBox2
@@ -1341,7 +1365,7 @@ Partial Class frmDeviceFinderClean
         Me.TextBox2.Location = New System.Drawing.Point(0, 0)
         Me.TextBox2.Multiline = True
         Me.TextBox2.Name = "TextBox2"
-        Me.TextBox2.Size = New System.Drawing.Size(426, 48)
+        Me.TextBox2.Size = New System.Drawing.Size(426, 47)
         Me.TextBox2.TabIndex = 1
         '
         'imgMediumIcons
@@ -1354,18 +1378,29 @@ Partial Class frmDeviceFinderClean
         Me.imgMediumIcons.Images.SetKeyName(3, "bookmark-new-list-2.ico")
         Me.imgMediumIcons.Images.SetKeyName(4, "contact-new-2.ico")
         '
-        'btnClearText
+        'TabPage2
         '
-        Me.btnClearText.Location = New System.Drawing.Point(12, 178)
-        Me.btnClearText.Name = "btnClearText"
-        Me.btnClearText.Size = New System.Drawing.Size(119, 37)
-        Me.btnClearText.TabIndex = 3
-        Me.btnClearText.Text = "Clear Box"
-        Me.btnClearText.UseVisualStyleBackColor = True
+        Me.TabPage2.Controls.Add(Me.RichTextBox2)
+        Me.TabPage2.Location = New System.Drawing.Point(4, 37)
+        Me.TabPage2.Name = "TabPage2"
+        Me.TabPage2.Padding = New System.Windows.Forms.Padding(3)
+        Me.TabPage2.Size = New System.Drawing.Size(1278, 723)
+        Me.TabPage2.TabIndex = 3
+        Me.TabPage2.Text = "TabPage2"
+        Me.TabPage2.UseVisualStyleBackColor = True
+        '
+        'RichTextBox2
+        '
+        Me.RichTextBox2.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.RichTextBox2.Location = New System.Drawing.Point(3, 3)
+        Me.RichTextBox2.Name = "RichTextBox2"
+        Me.RichTextBox2.Size = New System.Drawing.Size(1272, 717)
+        Me.RichTextBox2.TabIndex = 1
+        Me.RichTextBox2.Text = ""
         '
         'frmDeviceFinderClean
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(11.0!, 28.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1286, 794)
         Me.Controls.Add(Me.tabControl1)
@@ -1439,6 +1474,7 @@ Partial Class frmDeviceFinderClean
         Me.SplitContainer1.Panel2.PerformLayout()
         CType(Me.SplitContainer1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.SplitContainer1.ResumeLayout(False)
+        Me.TabPage2.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -1574,4 +1610,7 @@ Partial Class frmDeviceFinderClean
     Friend WithEvents SplitContainer1 As System.Windows.Forms.SplitContainer
     Friend WithEvents TextBox2 As System.Windows.Forms.TextBox
     Friend WithEvents btnClearText As System.Windows.Forms.Button
+    Friend WithEvents wb As System.Windows.Forms.WebBrowser
+    Friend WithEvents TabPage2 As System.Windows.Forms.TabPage
+    Friend WithEvents RichTextBox2 As System.Windows.Forms.RichTextBox
 End Class

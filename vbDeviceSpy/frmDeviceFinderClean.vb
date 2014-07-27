@@ -15,7 +15,7 @@ Public Class frmDeviceFinderClean
     Protected UPnpRoot() As TreeNode '= New TreeNode("Media Devices", 0, 0)
 
     Dim myThread As Threading.Thread
-
+    Dim tt As New ToolTip()
     Private SubscribedList As New ArrayList
 
     Private Categories As New Dictionary(Of String, String)
@@ -27,7 +27,7 @@ Public Class frmDeviceFinderClean
     Private Const COMPLETEDEVICE = "Complete Device: "
     Private Const AVTRANSPORTDEVICE = "AV Transport Device: "
     Private Const COMPOUNDDEVICE = "Compound Device: "
-    Private WithEvents tt As ToolTip
+
     Private Const STARTUPMODE = 0   '// 0 is auto, 1 is manual
     Dim myDebugForm As debugForm 'splashform is the form you want to be seperate from main ui thread
 
@@ -695,24 +695,38 @@ Public Class frmDeviceFinderClean
         lblAlb.Text = track.Album
         lblTrk.Text = track.TrackNumber
 
-        If pic.ImageLocation IsNot Nothing Then
-            If pic.ImageLocation <> track.AlbumArtURI Then
-                If track.AlbumArtURI <> "" Then pic.ImageLocation = track.AlbumArtURI
+        ShowAlbumArt(pic, track)
 
 
-            End If
-        Else
-            If track.AlbumArtURI <> "" Then pic.ImageLocation = track.AlbumArtURI
-        End If
-        If track.AlbumArtURI <> "" Then TextBox1.Text = track.AlbumArtURI
-        Debug.Print("TARGET URI [" & track.AlbumArtURI & "]")
-        Dim tt As New ToolTip()
-        tt.SetToolTip(pic, track.AlbumArtURI)
 
 
     End Sub
 
+    Private Sub ShowAlbumArt(pic As PictureBox, track As TrackInfoEx)
+        '// kill no image or default missing image URL stuff
+        'If track.AlbumArtURI = "http://192.168.1.57:1400/getaa?s=1&u=x-sonos-http:amz%3atr%3a398729e0-74d4-4057-9fcc-bcc232ae0472.mp3?sid=26&flags=32" Then Exit Sub
+        If track.AlbumArtURI = "" Then Exit Sub
 
+        If (pic.ImageLocation IsNot Nothing) Then
+            '// if it's different, update it.
+            If pic.ImageLocation <> track.AlbumArtURI Then
+                pic.ImageLocation = track.AlbumArtURI
+                TextBox1.Text = track.AlbumArtURI
+                tt.SetToolTip(pic, track.AlbumArtURI)
+                'wb.Navigate(track.AlbumArtURI)
+                'Process.Start("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", track.AlbumArtURI)
+            End If
+        Else
+            '// it hasn't been used. Let's use it.
+            pic.ImageLocation = track.AlbumArtURI
+            TextBox1.Text = track.AlbumArtURI
+            tt.SetToolTip(pic, track.AlbumArtURI)
+
+            'wb.Navigate(track.AlbumArtURI)
+            'Process.Start("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", track.AlbumArtURI)
+        End If
+        Debug.Print("TARGET URI [" & track.AlbumArtURI & "]")
+    End Sub
 #End Region
 
 #Region "Methods invoked by delegate from Callbacks"
@@ -867,6 +881,7 @@ Public Class frmDeviceFinderClean
 
     Private Sub btnLoadURL_Click(sender As Object, e As EventArgs) Handles btnLoadURL.Click
         PictureBox1.ImageLocation = TextBox1.Text
+
     End Sub
 
     Private Sub btnUnencode_Click(sender As Object, e As EventArgs) Handles btnUnencode.Click
@@ -877,10 +892,15 @@ Public Class frmDeviceFinderClean
 
     Private Sub btnLoadUnecoded_Click(sender As Object, e As EventArgs) Handles btnLoadUnecoded.Click
         PictureBox1.ImageLocation = TextBox2.Text
+
     End Sub
 
     Private Sub btnClearText_Click(sender As Object, e As EventArgs) Handles btnClearText.Click
         TextBox1.Text = ""
         TextBox2.Text = ""
+    End Sub
+
+    Private Sub wb_DocumentCompleted(sender As Object, e As WebBrowserDocumentCompletedEventArgs) Handles wb.DocumentCompleted
+        RichTextBox2.Text = wb.DocumentText
     End Sub
 End Class
